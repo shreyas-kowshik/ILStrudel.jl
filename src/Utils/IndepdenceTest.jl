@@ -1,0 +1,172 @@
+
+
+"""
+k-way pMI computation
+Works only for k={1,2} for now
+"""
+function kway_MI_cpu(dmat, prime_lits, sub_lits, lit_map, k=2)
+    mapped_primes = [lit_map[p] for p in prime_lits]
+    mapped_subs = [lit_map[s] for s in sub_lits]
+
+    num_prime_vars = length(mapped_primes)
+    num_sub_vars = length(mapped_subs)
+    num_vars = num_prime_vars + num_sub_vars
+
+    α = 1.0
+    N = size(dmat)[1]
+
+    """
+    Loop over NCk on primes
+    Loop over NCk on subs
+    Compute pMI for the current subsets selected
+    """
+    k1 = minimum([k, length(mapped_primes)])
+    k2 = minimum([k, length(mapped_subs)])
+
+    pMI_val = 0.0
+    for primes in combinations(mapped_primes, k1)
+        for subs in combinations(mapped_subs, k2)
+            # Assume k=2 for now #
+            # Generalise later if required #
+
+            # x1x2 : Prime Variables
+            # y1y2 : Sub Variables
+
+
+            prime_mat_vals = []
+            sub_mat_vals = []
+            vec_x1x2 = mapreduce(x->x, &, dmat[:, Var.(primes)], dims=[2])
+            push!(prime_mat_vals, vec_x1x2)
+
+            if k1 > 1
+                d = dmat[:, Var.(primes)]
+                d[:, 1] = .!(d[:, 1])
+                vec_nx1x2 = mapreduce(x->x, &, d, dims=[2])
+                push!(prime_mat_vals, vec_nx1x2)
+
+                d = dmat[:, Var.(primes)]
+                d[:, 2] = .!(d[:, 2])
+                vec_x1nx2 = mapreduce(x->x, &, d, dims=[2])
+                push!(sub_mat_vals, vec_x1nx2)
+            end
+
+            d = dmat[:, Var.(primes)]
+            d = .!(d)
+            vec_nx1nx2 = mapreduce(x->x, &, d, dims=[2])
+            push!(prime_mat_vals, vec_nx1nx2)
+
+            vec_y1y2 = mapreduce(x->x, &, dmat[:, Var.(subs)], dims=[2])
+            push!(sub_mat_vals, vec_y1y2)
+
+            if k2 > 1
+                d = dmat[:, Var.(subs)]
+                d[:, 1] = .!(d[:, 1])
+                vec_ny1y2 = mapreduce(x->x, &, d, dims=[2])
+                push!(sub_mat_vals, vec_ny1y2)
+
+                d = dmat[:, Var.(subs)]
+                d[:, 2] = .!(d[:, 2])
+                vec_y1ny2 = mapreduce(x->x, &, d, dims=[2])
+                push!(sub_mat_vals, vec_y1ny2)
+            end
+
+            d = dmat[:, Var.(subs)]
+            d = .!(d)
+            vec_ny1ny2 = mapreduce(x->x, &, d, dims=[2])
+            push!(sub_mat_vals, vec_ny1ny2)
+
+            for pval in prime_mat_vals
+                for sval in sub_mat_vals
+                    pcomb = sum(pval .& sval)/N
+                    pprimes = sum(pval)/N
+                    psubs = sum(sval)/N
+
+                    pMI_val += (pcomb * (log((pcomb / ((pprimes * psubs) + 1e-6)) + 1e-6)))
+                end
+            end
+
+            ######################
+        end
+    end
+
+    return pMI_val / (num_prime_vars + num_sub_vars)
+end
+
+
+function pMI_kernel_gpu(marginals, p_s, notp_s, p_nots, notp_nots, 
+    pMI_vec, num_prime_vars, num_sub_vars)
+    index_x = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+    index_y = (blockIdx().y - 1) * blockDim().y + threadIdx().y
+
+    if (index_x > num_prime_vars) || (index_y > num_sub_vars)
+        return nothing
+    end
+
+    pMI_vec[index_x, index_y] = 0.0
+
+    if index_x == index_y
+        return nothing
+    end
+
+    pMI_vec[index_x, index_y] += (p_s[index_x, index_y] * CUDA.log((p_s[index_x, index_y])/(marginals[index_x] * marginals[index_y] + 1e-13) + 1e-13))
+    pMI_vec[index_x, index_y] += (notp_s[index_x, index_y] * CUDA.log((notp_s[index_x, index_y])/((1.0 - marginals[index_x]) * marginals[index_y] + 1e-13) + 1e-13))
+    pMI_vec[index_x, index_y] += (p_nots[index_x, index_y] * CUDA.log((p_nots[index_x, index_y])/(marginals[index_x] * (1.0 - marginals[index_y]) + 1e-13) + 1e-13))
+    pMI_vec[index_x, index_y] += (notp_nots[index_x, index_y] * CUDA.log((notp_nots[index_x, index_y])/((1.0 - marginals[index_x]) * (1.0 - marginals[index_y]) + 1e-13) + 1e-13))
+
+    return nothing
+end
+
+function pMI(dmat, prime_lits, sub_lits, lit_map)
+    mapped_primes = [lit_map[p] for p in prime_lits]
+    mapped_subs = [lit_map[s] for s in sub_lits]
+
+    num_prime_vars = length(mapped_primes)
+    num_sub_vars = length(mapped_subs)
+    num_vars = num_prime_vars + num_sub_vars
+
+    pMI_vec = to_gpu(zeros(num_vars, num_vars))
+
+    num_threads = (16, 16)
+    num_blocks = (ceil(Int, num_vars/16), ceil(Int, num_vars/16))
+
+    α = 1.0
+    N = size(dmat)[1]
+
+    dummy = ones(num_prime_vars+num_sub_vars,num_prime_vars+num_sub_vars)
+    d_d = cu(similar(dummy))
+    d_nd = cu(similar(dummy))
+    nd_nd = cu(similar(dummy))
+    dmat_gpu = cu(dmat)
+    dmat_tr_gpu = cu(collect(dmat'))
+    not_dmat_gpu = cu(.!(dmat))
+    not_dmat_tr_gpu = cu(collect((.!(dmat))'))
+
+    mul!(d_d, dmat_tr_gpu, dmat_gpu)
+    mul!(d_nd, dmat_tr_gpu, not_dmat_gpu)
+    mul!(nd_nd, not_dmat_tr_gpu, not_dmat_gpu)
+
+    d_d = (d_d .+ (4.0 * α)) ./ (N + 4.0 * α)
+    d_nd = (d_nd .+ (4.0 * α)) ./ (N + 4.0 * α)
+    nd_nd = (nd_nd .+ (4.0 * α)) ./ (N + 4.0 * α)
+    marginals = (dropdims(count(dmat, dims=1), dims=1) .+ (2.0 * α)) ./ (N + 4.0 * α)
+
+    p_s = d_d
+    p_nots = d_nd
+    notp_s = collect(d_nd')
+    notp_nots = nd_nd
+
+    @cuda threads=num_threads blocks=num_blocks pMI_kernel_gpu(to_gpu(marginals),
+                            p_s, to_gpu(notp_s), p_nots, notp_nots,
+                            pMI_vec, num_vars, num_vars)
+
+
+    cpu_pMI = to_cpu(pMI_vec)
+    cpu_pMI = cpu_pMI[Var.(mapped_primes), Var.(mapped_subs)]
+    cpu_pMI = mean(cpu_pMI)
+
+    if abs(cpu_pMI) < 1e-10
+        cpu_pMI = 0.0
+    end
+
+    return cpu_pMI
+end
