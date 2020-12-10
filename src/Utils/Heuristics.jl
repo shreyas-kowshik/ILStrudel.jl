@@ -39,9 +39,90 @@ function vRand(vars::Vector{Var})
     return Var(rand(vars))
 end
 
+function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, train_x)
+    # Convert to BitMatrix
+    dmat = BitArray(convert(Matrix, train_x))
+    N = num_examples(train_x)
 
+    # Return parameters
+    min_score = Inf
+    edge = nothing
+    var_ = nothing
 
+    for (i, (or, and)) in enumerate(candidates)
+        og_lits = collect(Set{Lit}(scope[and])) # All literals
 
+        # On which you can split
+        lits = sort(collect(intersect(filter(l -> l > 0, og_lits), - collect(filter(l -> l < 0, og_lits)))))
+        vars = Var.(lits)
+
+        prime_lits = sort([abs(l) for l in og_lits if l in scope[children(and)[1]]])
+        sub_lits = sort([abs(l) for l in og_lits if l in scope[children(and)[2]]])
+
+        prime_lits = sort(collect(Set{Lit}(prime_lits)))
+        sub_lits = sort(collect(Set{Lit}(sub_lits)))
+        prime_sub_lits = sort([prime_lits..., sub_lits...])
+
+        @assert length(prime_lits) > 0 "Prime litset empty"
+        @assert length(sub_lits) > 0 "Sub litset empty"
+        prime_sub_vars = Var.(prime_sub_lits)
+        lit_map = Dict(l => i for (i, l) in enumerate(prime_sub_lits))
+
+        examples_id = downflow_all(values, flows, or, and)[1:N]
+
+        if(sum(examples_id) == 0)
+            continue
+        end
+
+        stotal = 0.0
+        stotal = _mutual_information(dmat[examples_id, :], prime_lits, sub_lits)
+
+        if stotal == 0.0
+            continue
+        end
+
+        if(length(lits) == 0)
+            continue
+        end
+
+        for j=1:length(lits)
+            var = lits[j]
+            pos_scope = examples_id .& dmat[:, var]
+            neg_scope = examples_id .& (.!(pos_scope))
+            @assert sum(examples_id) == (sum(pos_scope) + sum(neg_scope)) "Scopes do not add up"
+            s1 = Inf
+            s2 = Inf
+
+            if sum(pos_scope) > 0
+                stotal = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
+            end
+            if sum(neg_scope) > 0
+                stotal = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
+            end
+
+            s = 0.0
+            w1 = (sum(pos_scope)) / (1.0 * N)
+            w2 = (sum(neg_scope)) / (1.0 * N)
+            w = (sum(examples_id)) / (1.0 * N)
+
+            if s1 == Inf
+                s = (s2*w2) - (stotal*w)
+            elseif s2 == Inf
+                s = (s1*w1) - (stotal*w)
+            else
+                s = (s1*w1) + (s2*w2) - (2.0*stotal*w)
+            end
+
+            if s < min_score
+                min_score = s
+                edge = (or, and)
+                var_ = var
+            end
+        end
+    end
+
+    return edge, var
+end
 
 """
 Params :
@@ -67,7 +148,7 @@ function split_heuristic(circuit::LogicCircuit, train_x; pick_edge="w_ind", pick
 
     if pick_edge == "w_ind" || pick_var == "w_ind"
         # Weighted heuristic
-
+        (or, and), var = w_ind(candidates, values, flows, variable_scope, train_x)
     else
         if pick_edge == "eFlow"
             edge, flow = eFlow(values, flows, candidates)

@@ -1,15 +1,16 @@
+using Combinatorics
+using CUDA
+using LinearAlgebra
 
 
+############################### Mutual Information ###############################
 """
 k-way pMI computation
 Works only for k={1,2} for now
 """
-function kway_MI_cpu(dmat, prime_lits, sub_lits, lit_map, k=2)
-    mapped_primes = [lit_map[p] for p in prime_lits]
-    mapped_subs = [lit_map[s] for s in sub_lits]
-
-    num_prime_vars = length(mapped_primes)
-    num_sub_vars = length(mapped_subs)
+function kway_MI_cpu(dmat, vars_x, vars_y;k=2)
+    num_prime_vars = length(vars_x)
+    num_sub_vars = length(vars_y)
     num_vars = num_prime_vars + num_sub_vars
 
     α = 1.0
@@ -20,19 +21,17 @@ function kway_MI_cpu(dmat, prime_lits, sub_lits, lit_map, k=2)
     Loop over NCk on subs
     Compute pMI for the current subsets selected
     """
-    k1 = minimum([k, length(mapped_primes)])
-    k2 = minimum([k, length(mapped_subs)])
+    k1 = minimum([k, length(vars_x)])
+    k2 = minimum([k, length(vars_y)])
 
     pMI_val = 0.0
-    for primes in combinations(mapped_primes, k1)
-        for subs in combinations(mapped_subs, k2)
+    for primes in combinations(vars_x, k1)
+        for subs in combinations(vars_y, k2)
             # Assume k=2 for now #
             # Generalise later if required #
 
             # x1x2 : Prime Variables
             # y1y2 : Sub Variables
-
-
             prime_mat_vals = []
             sub_mat_vals = []
             vec_x1x2 = mapreduce(x->x, &, dmat[:, Var.(primes)], dims=[2])
@@ -92,8 +91,7 @@ function kway_MI_cpu(dmat, prime_lits, sub_lits, lit_map, k=2)
     return pMI_val / (num_prime_vars + num_sub_vars)
 end
 
-
-function pMI_kernel_gpu(marginals, p_s, notp_s, p_nots, notp_nots, 
+function pMI_kernel_gpu(marginals, p_s, notp_s, p_nots, notp_nots,
     pMI_vec, num_prime_vars, num_sub_vars)
     index_x = (blockIdx().x - 1) * blockDim().x + threadIdx().x
     index_y = (blockIdx().y - 1) * blockDim().y + threadIdx().y
@@ -116,20 +114,15 @@ function pMI_kernel_gpu(marginals, p_s, notp_s, p_nots, notp_nots,
     return nothing
 end
 
-function pMI(dmat, prime_lits, sub_lits, lit_map)
-    mapped_primes = [lit_map[p] for p in prime_lits]
-    mapped_subs = [lit_map[s] for s in sub_lits]
-
-    num_prime_vars = length(mapped_primes)
-    num_sub_vars = length(mapped_subs)
+function pMI_gpu(dmat, vars_x, vars_y; α=1.0)
+    num_prime_vars = length(vars_x)
+    num_sub_vars = length(vars_y)
     num_vars = num_prime_vars + num_sub_vars
 
     pMI_vec = to_gpu(zeros(num_vars, num_vars))
 
     num_threads = (16, 16)
     num_blocks = (ceil(Int, num_vars/16), ceil(Int, num_vars/16))
-
-    α = 1.0
     N = size(dmat)[1]
 
     dummy = ones(num_prime_vars+num_sub_vars,num_prime_vars+num_sub_vars)
@@ -159,9 +152,8 @@ function pMI(dmat, prime_lits, sub_lits, lit_map)
                             p_s, to_gpu(notp_s), p_nots, notp_nots,
                             pMI_vec, num_vars, num_vars)
 
-
     cpu_pMI = to_cpu(pMI_vec)
-    cpu_pMI = cpu_pMI[Var.(mapped_primes), Var.(mapped_subs)]
+    cpu_pMI = cpu_pMI[Var.(vars_x), Var.(vars_y)]
     cpu_pMI = mean(cpu_pMI)
 
     if abs(cpu_pMI) < 1e-10
@@ -169,4 +161,42 @@ function pMI(dmat, prime_lits, sub_lits, lit_map)
     end
 
     return cpu_pMI
+end
+
+
+"""
+Given bit-matrix `mat` compute empirical-mutual-information between two sets of variables `vars_x` and `vars_y`
+
+k : Specifies number of variables from each set to approximate MI at a time
+k=1 : pMI
+
+k={1,2} only available for now
+"""
+function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=true)
+    mi = 0.0
+    vars = sort([vars_x..., vars_y...])
+    var_map = Dict([k=>i for (i, k) in enumerate(vars)])
+    vars_x = [var_map[v] for v in vars_x]
+    vars_y = [var_map[v] for v in vars_y]
+    mat = mat[:, vars]
+
+    if k == 1
+        if use_gpu == true
+            mi = pMI_gpu(mat, vars_x, vars_y)
+        else
+            (_, pairwise_mi_mat) = mutual_information(mat; α=1.0)
+            mi = mean(pairwise_mi_mat[vars_x, vars_y])
+        end
+
+    elseif k == 2
+        if use_gpu == true
+            error("GPU kernel not defined for k=$k")
+        end
+
+        mi = kway_MI_cpu(mat, vars_x, vars_y)
+    else
+        error("mutual_information not defined for k=$k")
+    end
+
+    return mi
 end
