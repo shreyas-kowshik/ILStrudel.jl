@@ -50,14 +50,15 @@ function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, trai
     var_ = nothing
 
     for (i, (or, and)) in enumerate(candidates)
-        og_lits = collect(Set{Lit}(scope[and])) # All literals
+        og_lits = collect(Set{Lit}(variables(and.vtree))) # All literals
 
         # On which you can split
-        lits = sort(collect(intersect(filter(l -> l > 0, og_lits), - collect(filter(l -> l < 0, og_lits)))))
+        # lits = sort(collect(intersect(filter(l -> l > 0, og_lits), - collect(filter(l -> l < 0, og_lits)))))
+        lits = collect(Set{Lit}(scope[and]))
         vars = Var.(lits)
 
-        prime_lits = sort([abs(l) for l in og_lits if l in scope[children(and)[1]]])
-        sub_lits = sort([abs(l) for l in og_lits if l in scope[children(and)[2]]])
+        prime_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[1].vtree)])
+        sub_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[2].vtree)])
 
         prime_lits = sort(collect(Set{Lit}(prime_lits)))
         sub_lits = sort(collect(Set{Lit}(sub_lits)))
@@ -68,7 +69,7 @@ function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, trai
         prime_sub_vars = Var.(prime_sub_lits)
         lit_map = Dict(l => i for (i, l) in enumerate(prime_sub_lits))
 
-        examples_id = downflow_all(values, flows, or, and)[1:N]
+        examples_id = downflow_all(values, flows, num_examples(train_x), or, and)
 
         if(sum(examples_id) == 0)
             continue
@@ -94,10 +95,10 @@ function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, trai
             s2 = Inf
 
             if sum(pos_scope) > 0
-                stotal = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
+                s1 = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
             end
             if sum(neg_scope) > 0
-                stotal = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
+                s2 = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
             end
 
             s = 0.0
@@ -116,12 +117,13 @@ function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, trai
             if s < min_score
                 min_score = s
                 edge = (or, and)
-                var_ = var
+                var_ = Var(var)
             end
         end
     end
 
-    return edge, var
+    (or, and) = edge
+    return (or, and), var_
 end
 
 """

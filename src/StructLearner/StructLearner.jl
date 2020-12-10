@@ -7,6 +7,9 @@ Module for Structure-Learning including :
 
 module StructLearner
 
+# Do these imports if you use functions of these modules inside this module
+using ..Utils
+
 # Do these imports if you use functions of these packages inside this module
 using LogicCircuits
 using ProbabilisticCircuits
