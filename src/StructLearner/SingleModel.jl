@@ -51,11 +51,16 @@ function learn_single_model(train_x, valid_x, test_x, pc, vtree;
     log_per_iter(circuit) = begin
         # ll = EVI(circuit, train_x);
         if batch_size > 0
-            ll = log_likelihood_avg(circuit, batch(train_x, batch_size); use_gpu)
+            train_ll = log_likelihood_avg(circuit, batch(train_x, batch_size); use_gpu)
+            valid_ll = log_likelihood_avg(circuit, batch(valid_x, batch_size); use_gpu)
+            test_ll = log_likelihood_avg(circuit, batch(test_x, batch_size); use_gpu)
         else
-            ll = log_likelihood_avg(circuit, train_x; use_gpu)
+            train_ll = log_likelihood_avg(circuit, train_x; use_gpu)
+            valid_ll = log_likelihood_avg(circuit, valid_x; use_gpu)
+            test_ll = log_likelihood_avg(circuit, test_x; use_gpu)
         end
-        println("Iteration $iter/$maxiter. LogLikelihood = $(ll); nodes = $(num_nodes(circuit)); edges =  $(num_edges(circuit)); params = $(num_parameters(circuit))")
+        println("Iteration $iter/$maxiter. nodes = $(num_nodes(circuit)); params = $(num_parameters(circuit))")
+        println("TrainLL = $(train_ll); ValidLL = $(valid_ll); TestLL = $(test_ll)");
         iter += 1
         false
     end
