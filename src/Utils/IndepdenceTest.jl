@@ -8,12 +8,11 @@ using LinearAlgebra
 k-way pMI computation
 Works only for k={1,2} for now
 """
-function kway_MI_cpu(dmat, vars_x, vars_y;k=2)
+function kway_MI_cpu(dmat, vars_x, vars_y; k=2, α=1.0)
     num_prime_vars = length(vars_x)
     num_sub_vars = length(vars_y)
     num_vars = num_prime_vars + num_sub_vars
 
-    α = 1.0
     N = size(dmat)[1]
 
     """
@@ -172,7 +171,7 @@ k=1 : pMI
 
 k={1,2} only available for now
 """
-function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=true)
+function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=false, α=1.0)
     mi = 0.0
     vars = sort([vars_x..., vars_y...])
     var_map = Dict([k=>i for (i, k) in enumerate(vars)])
@@ -182,9 +181,9 @@ function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=true)
 
     if k == 1
         if use_gpu == true
-            mi = pMI_gpu(mat, vars_x, vars_y)
+            mi = pMI_gpu(mat, vars_x, vars_y; α=α)
         else
-            (_, pairwise_mi_mat) = mutual_information(mat; α=1.0)
+            (_, pairwise_mi_mat) = mutual_information(mat; α=α)
             mi = mean(pairwise_mi_mat[vars_x, vars_y])
         end
 
@@ -193,7 +192,7 @@ function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=true)
             error("GPU kernel not defined for k=$k")
         end
 
-        mi = kway_MI_cpu(mat, vars_x, vars_y)
+        mi = kway_MI_cpu(mat, vars_x, vars_y; α=α)
     else
         error("mutual_information not defined for k=$k")
     end

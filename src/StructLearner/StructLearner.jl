@@ -9,6 +9,7 @@ module StructLearner
 
 # Do these imports if you use functions of these modules inside this module
 using ..Utils
+# using ..Miner
 
 # Do these imports if you use functions of these packages inside this module
 using LogicCircuits
@@ -19,8 +20,12 @@ using Statistics
 export
 
 # SingleModel
-learn_single_model
+learn_single_model,
+
+# MineEnsembleModel
+learn_mine_ensemble
 
 include("SingleModel.jl")
+include("MineEnsembleModel.jl")
 
 end
