@@ -15,7 +15,9 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     circuits = []
     for bitmask in bitmasks
         println("Size of Bitmask : $(sum(bitmask))")
-        pc = learn_single_model(train_x[bitmask, :], valid_x[bitmask, :], test_x[bitmask, :]; 
+        println("$(size(bitmask))")
+        bitmask = BitArray(bitmask)
+        pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
         pick_edge="w_ind", pick_var="w_ind", depth=1, 
         pseudocount=1.0,
         sanity_check=true,

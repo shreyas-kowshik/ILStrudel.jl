@@ -9,7 +9,7 @@ module StructLearner
 
 # Do these imports if you use functions of these modules inside this module
 using ..Utils
-# using ..Miner
+using ..Miner
 
 # Do these imports if you use functions of these packages inside this module
 using LogicCircuits
