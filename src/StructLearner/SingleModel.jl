@@ -48,6 +48,8 @@ function learn_single_model(train_x, valid_x, test_x, pc, vtree;
     end
 
     iter = 0
+    count = 0
+    valid_lls_track = []
     log_per_iter(circuit) = begin
         # ll = EVI(circuit, train_x);
         if batch_size > 0
@@ -62,6 +64,15 @@ function learn_single_model(train_x, valid_x, test_x, pc, vtree;
         println("Iteration $iter/$maxiter. nodes = $(num_nodes(circuit)); params = $(num_parameters(circuit))")
         println("TrainLL = $(train_ll); ValidLL = $(valid_ll); TestLL = $(test_ll)");
         iter += 1
+
+        # Early Stopping
+        push!(valid_lls_track, valid_ll)
+        if length(valid_lls_track) > 30
+            if valid_lls_track[end] - valid_lls_track[end - 30] < 0
+                println("Early Stopping")
+                return true
+            end
+        end
         false
     end
 
