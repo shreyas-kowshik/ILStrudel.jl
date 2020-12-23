@@ -6,11 +6,18 @@ Contains functions for mining Context-Specific-Independences at the root level u
 """
 
 ### Fitness Function ###
-function fitness(dmat, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones(1)), thresh = 0.1)
+function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones(1)), thresh = 0.1)
     function score(bitmask::BitArray)
-        bm = BitArray(zeros(size(dmat)[1]))
+        bm = BitArray(zeros(size(uq)[1]))
         bm[idx] .= bitmask
-        mi = _mutual_information(dmat[bm, :], prime_lits, sub_lits; use_gpu=false, k=1, α=0.00000001)
+
+        bm_mi = BitArray(zeros(size(dmat)[1]))
+        instances = uq[bm, :]
+        for i in 1:size(instances)[1]
+            bm_mi[dict[instances[i, :]]] .= 1
+        end
+
+        mi = _mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=false, k=1, α=0.00000001)
     
         if mi < thresh
             return -1.0 * sum(bm)
@@ -78,7 +85,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
                     iterations=10, mutation_prob=0.1, population_size=100,
                     pmi_thresh=0.1)
 
-    N = size(train_x)[1]
+    # N = size(train_x)[1]
     dmat = BitArray(convert(Matrix, train_x))
 
     and = children(pc)[1]
@@ -90,6 +97,19 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
     prime_lits = sort(collect(Set{Lit}(prime_lits)))
     sub_lits = sort(collect(Set{Lit}(sub_lits)))
     prime_sub_lits = sort([prime_lits..., sub_lits...])
+
+    # Unique mapping
+    uq = unique(train_x)
+    dict = Dict()
+    for i in 1:size(uq)[1]
+        dict[uq[i, :]] = []
+    end
+
+    for i in 1:size(train_x)[1]
+        push!(dict[train_x[i, :]], i)
+    end
+
+    N = size(uq)[1]
 
     # Start Optimization #
     opts = Evolutionary.Options(iterations=iterations, show_every=1, show_trace=true, store_trace=true,
@@ -121,7 +141,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         bm = BitArray(zeros(sum(idx)))
         bm[1] = 1
         
-        res = Evolutionary.optimize(fitness(dmat, prime_lits, sub_lits; idx=idx, thresh=pmi_thresh),
+        res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; idx=idx, thresh=pmi_thresh),
                                     bm, algo, opts)
         evomodel = Evolutionary.minimizer(res)
         bitmask = BitArray(zeros(N))
@@ -129,11 +149,23 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         
         acc = acc .| bitmask
         
-        push!(bitmasks, bitmask)
+        # push!(bitmasks, bitmask)
+        bm_train_x = BitArray(zeros(size(dmat)[1]))
+        instances = uq[bitmask, :]
+        for i in 1:size(instances)[1]
+            bm_train_x[dict[instances[i, :]]] .= 1
+        end
+        push!(bitmasks, bm_train_x)
     end
 
     # Assign remaining values to a bitmask
-    push!(bitmasks, .!(acc))
+    # push!(bitmasks, .!(acc))
+    bm_train_x = BitArray(zeros(size(dmat)[1]))
+    instances = uq[.!(acc), :]
+    for i in 1:size(instances)[1]
+        bm_train_x[dict[instances[i, :]]] .= 1
+    end
+    push!(bitmasks, bm_train_x)
 
     return bitmasks
 end
