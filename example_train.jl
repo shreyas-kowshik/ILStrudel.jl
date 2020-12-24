@@ -1,5 +1,5 @@
-using Pkg
-Pkg.activate("/media/shreyas/Data/UCLA-Intern/ILStrudel/ILStrudel.jl")
+# using Pkg
+# Pkg.activate("/media/shreyas/Data/UCLA-Intern/ILStrudel/ILStrudel.jl")
 
 using Test
 using LogicCircuits
@@ -36,7 +36,7 @@ function mine_model(dataset_name)
         pick_edge=pick_edge, pick_var=pick_var, depth=1,
         pseudocount=1e-9,
         sanity_check=true,
-        maxiter=350,
+        maxiter=700,
         seed=nothing,
         return_vtree=false,
         return_bitmasks=true)
