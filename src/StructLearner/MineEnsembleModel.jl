@@ -9,10 +9,13 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     maxiter=100,
     seed=nothing,
     return_vtree=false,
-    return_bitmasks=false)
+    return_bitmasks=false,
+    pmi_thresh=0.1)
 
     pc, vtree = learn_chow_liu_tree_circuit(train_x)
-    bitmasks = mine_csi_root_ga(pc, vtree, train_x, num_mine_samples; iterations=mine_iterations, population_size=population_size)
+    bitmasks = mine_csi_root_ga(pc, vtree, train_x, num_mine_samples; 
+                                iterations=mine_iterations, population_size=population_size,
+                                pmi_thresh=pmi_thresh)
 
     circuits = []
     for bitmask in bitmasks

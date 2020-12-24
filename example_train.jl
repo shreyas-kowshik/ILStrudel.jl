@@ -1,5 +1,5 @@
-# using Pkg
-# Pkg.activate("/media/shreyas/Data/UCLA-Intern/ILStrudel/ILStrudel.jl")
+using Pkg
+Pkg.activate("/media/shreyas/Data/UCLA-Intern/ILStrudel/ILStrudel.jl")
 
 using Test
 using LogicCircuits
@@ -23,23 +23,34 @@ function single_model()
         return_vtree=false)
 end
 
-function mine_model(dataset_name)
+function mine_model(dataset_name; 
+    mine_iterations=1,
+    population_size=population_size,
+    num_mine_samples=10,
+    pseudocount=1e-9,
+    sanity_check=true,
+    maxiter=700,
+    seed=nothing,
+    return_vtree=false,
+    return_bitmasks=true,
+    pmi_thresh=0.1)
+
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
     pick_edge = "eFlow"
     pick_var = "vMI"
-    population_size=1000
     
     pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
         mine_iterations=1,
         population_size=population_size,
-        num_mine_samples=10,
+        num_mine_samples=num_mine_samples,
         pick_edge=pick_edge, pick_var=pick_var, depth=1,
-        pseudocount=1e-9,
-        sanity_check=true,
-        maxiter=700,
-        seed=nothing,
-        return_vtree=false,
-        return_bitmasks=true)
+        pseudocount=pseudocount,
+        sanity_check=sanity_check,
+        maxiter=maxiter,
+        seed=seed,
+        return_vtree=return_vtree,
+        return_bitmasks=return_bitmasks,
+        pmi_thresh=pmi_thresh)
 
     # Validation ll computation
     weights = [sum(bitmask) / size(train_x)[1] for bitmask in bitmasks]
@@ -95,7 +106,43 @@ function parse_commandline()
         "--name"
             help = "Name of the dataset"
             arg_type = String
-      		required = true
+            required = true
+        
+        "--mine_iterations"
+            help = "Number of iterations to mine data"
+            arg_type = Int
+            default = 1
+            required = false
+
+        "--population_size"
+            help = ""
+            arg_type = Int
+            default = 1000
+            required = false
+            
+        "--num_mine_samples"
+            help = ""
+            arg_type = Int
+            default = 10
+      		required = false
+        
+        "--pseudocount"
+            help = ""
+            arg_type = Float64
+            default = 1e-9
+            required = false
+        
+        "--maxiter"
+            help = ""
+            arg_type = Int
+            default = 200
+            required = false
+              
+        "--pmi_thresh"
+            help = ""
+            arg_type = Float64
+            default = 0.1
+      		required = false
 
         # "--split_h"
         #     help = "Split Heuristic"
@@ -128,4 +175,10 @@ end
 
 parsed_args = parse_commandline()
 
-mine_model(parsed_args["name"])
+mine_model(parsed_args["name"];
+mine_iterations=parsed_args["mine_iterations"],
+population_size=parsed_args["population_size"],
+num_mine_samples=parsed_args["num_mine_samples"],
+pseudocount=parsed_args["pseudocount"],
+maxiter=parsed_args["maxiter"],
+pmi_thresh=parsed_args["pmi_thresh"])
