@@ -8,6 +8,12 @@ using ILStrudel
 using Statistics
 using ArgParse
 
+"""
+(depth=3)
+julia example_train.jl --name dna --population_size 50000 
+--pmi_thresh 0.01 --pseudocount 1.0 --maxiter 200 --num_mine_samples 10 --mine_iterations 3
+"""
+
 function single_model()
     # pc = learn_single_model("nltcs")
     train_x, valid_x, test_x = twenty_datasets("nltcs")

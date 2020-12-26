@@ -1,5 +1,6 @@
 using LinearAlgebra: diagind
 
+# Split Heuristics #
 """
 Pick the edge with maximum flow
 """
@@ -126,6 +127,103 @@ function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, trai
     return (or, and), var_
 end
 
+# Clone Heuristics #
+
+# Helper function to get parents of AND nodes
+function get_and_parents(circuit::Node)::Dict{Node, Vector{Node}}
+    parents = Dict{Node, Vector{Node}}()
+
+    f_con(n) = begin
+        false
+    end
+    f_lit(n) = begin
+        false
+    end
+    f_a(n, cv) = begin
+        for c in children(n)
+            if c in keys(parents)
+                push!(parents[c], n)
+            else
+                parents[c] = [n]
+            end
+        end
+        false
+    end
+    f_o(n, cv) = begin
+        for c in children(n)
+            if c in keys(parents)
+                push!(parents[c], n)
+            else
+                parents[c] = [n]
+            end
+        end
+        true
+    end
+
+    foldup_aggregate(circuit, f_con, f_lit, f_a, f_o, Bool)
+    return parents
+end
+
+function cloneFlowFull(circuit, candidates, train_x)
+    and_parents_dict = get_and_parents(circuit)
+
+    values, flows = satisfies_flows(circuit, train_x; weights = nothing) # Do not use samples weights here
+    @inline flow(n) = downflow_all(values, flows, num_examples(train_x), n)
+    @inline flow(n, c) = downflow_all(values, flows, num_examples(train_x), n, c)
+
+    function flow_and(and)
+        parents = and_parents_dict[and]
+        flow_mask = BitArray(zeros(size(train_x)[1]))
+        for or in parents
+            flow_mask = flow_mask .| flow(or, and)
+        end
+        return flow_mask
+    end
+
+     @inline log_term(D1, D2) = begin
+         if D1 == 0
+            return 0
+        elseif D2 == 0
+            return 0
+        else
+            return log(D1 / D2)*D1
+        end
+     end
+
+     @inline flow_score(or, and1, and2) = begin
+        ll = 0.0
+        flow_or = flow(or)
+        flow_and1 = flow_and(and1)
+        flow_and2 = flow_and(and2)
+        @assert flow_and1 .| flow_and2 == flow_or
+        Dn = sum(flow_or)
+        Dn_plus = sum(flow_or .& flow_and1)
+        Dn_minus = sum(flow_or .& flow_and2)
+    
+        for c in children(or)
+            Dnp = sum(flow(or, c))
+            if is⋀gate(c)
+                flow_c = flow_and(c)
+            else
+                flow_c = flow(c)
+            end
+            Dnp_plus = sum((flow_or .& flow_and1) .& flow_c)
+            Dnp_minus = sum((flow_or .& flow_and2) .& flow_c)
+            
+            ll += (log_term(Dnp_plus, Dn_plus) + log_term(Dnp_minus, Dn_minus) - log_term(Dnp, Dn))
+        end
+        ll
+    end
+
+    score_map = Dict()
+    for (or, (and1, and2)) in candidates
+        score = flow_score(or, and1, and2)
+        score_map[(or, and1, and2)] = score
+    end
+
+    sort([((or, and1, and2), val) for ((or, and1, and2), val) in score_map], by=x->x[2], rev=true)[1][1]
+end
+
 """
 Params :
     - circuit, dataset
@@ -173,4 +271,24 @@ function split_heuristic(circuit::LogicCircuit, train_x; pick_edge="w_ind", pick
     end
 
     return (or, and), var
+end
+
+function clone_heuristic(circuit::LogicCircuit, train_x; heuristic="clone_flow_full")
+    candidates = clone_candidates(circuit)
+
+    or = nothing
+    and1 = nothing
+    and2 = nothing
+
+    if length(keys(candidates)) == 0
+        return (or, and1, and2)
+    end
+    
+    if heuristic == "clone_flow_full"
+        (or, and1, and2) = cloneFlowFull(circuit, candidates, train_x)
+    else
+        error("Heuristic $heuristic not defined")
+    end
+    
+    return (or, and1, and2)
 end

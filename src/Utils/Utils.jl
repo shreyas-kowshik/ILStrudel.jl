@@ -18,6 +18,7 @@ export
 
 # Heuristics
 split_heuristic,
+clone_heuristic,
 
 # IndependenceTest
 _mutual_information # '_' since it conflicts with `ProbabilisticCircuits.jl`'s definition
