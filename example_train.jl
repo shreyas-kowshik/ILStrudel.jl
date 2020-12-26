@@ -40,10 +40,10 @@ function mine_model(dataset_name;
     pick_var = "vMI"
     
     pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
-        mine_iterations=1,
+        mine_iterations=mine_iterations,
         population_size=population_size,
         num_mine_samples=num_mine_samples,
-        pick_edge=pick_edge, pick_var=pick_var, depth=1,
+        pick_edge=pick_edge, pick_var=pick_var, depth=3,
         pseudocount=pseudocount,
         sanity_check=sanity_check,
         maxiter=maxiter,
@@ -83,6 +83,10 @@ function mine_model(dataset_name;
     println("Train LL : $(train_ll)")
     println("Valid_LL : $(valid_ll)")
     println("Test LL : $(test_ll)")
+    bit_lengths = [length(b) for b in bitmasks]
+    total_params = sum([num_parameters(pc) for pc in pcs])
+    println(bit_lengths)
+    println("Total Parameters : $(total_params)")
     ###
 
 
