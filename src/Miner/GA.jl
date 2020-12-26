@@ -137,6 +137,10 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         Random.seed!(seed);
         idx = .!(acc)
         println(sum(idx))
+
+        if sum(idx) == 0
+            break
+        end
         
         bm = BitArray(zeros(sum(idx)))
         bm[1] = 1
@@ -160,12 +164,15 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
 
     # Assign remaining values to a bitmask
     # push!(bitmasks, .!(acc))
-    bm_train_x = BitArray(zeros(size(dmat)[1]))
-    instances = uq[.!(acc), :]
-    for i in 1:size(instances)[1]
-        bm_train_x[dict[instances[i, :]]] .= 1
+
+    if sum(.!(acc)) > 0
+        bm_train_x = BitArray(zeros(size(dmat)[1]))
+        instances = uq[.!(acc), :]
+        for i in 1:size(instances)[1]
+            bm_train_x[dict[instances[i, :]]] .= 1
+        end
+        push!(bitmasks, bm_train_x)
     end
-    push!(bitmasks, bm_train_x)
 
     return bitmasks
 end
