@@ -89,7 +89,7 @@ function mine_model(dataset_name;
     println("Train LL : $(train_ll)")
     println("Valid_LL : $(valid_ll)")
     println("Test LL : $(test_ll)")
-    bit_lengths = [length(b) for b in bitmasks]
+    bit_lengths = [sum(b) for b in bitmasks]
     total_params = sum([num_parameters(pc) for pc in pcs])
     println(bit_lengths)
     println("Total Parameters : $(total_params)")

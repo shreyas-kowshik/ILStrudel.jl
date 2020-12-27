@@ -17,7 +17,7 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
             bm_mi[dict[instances[i, :]]] .= 1
         end
 
-        mi = _mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=false, k=1, α=0.00000001)
+        mi = _mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=false, k=2, α=0.00000001)
     
         if mi < thresh
             return -1.0 * sum(bm)
