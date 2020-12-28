@@ -72,7 +72,7 @@ function kway_MI_cpu(dmat, vars_x, vars_y; k=2, α=1.0)
             d = dmat[:, Var.(subs)]
             d = .!(d)
             vec_ny1ny2 = mapreduce(x->x, &, d, dims=[2])
-            push!(sub_mat_vals, vec_ny1ny2
+            push!(sub_mat_vals, vec_ny1ny2)
 
             for pval in prime_mat_vals
                 for sval in sub_mat_vals
@@ -89,7 +89,7 @@ function kway_MI_cpu(dmat, vars_x, vars_y; k=2, α=1.0)
         end
     end
 
-    return pMI_val / cnt
+    return pMI_val / (cnt + 1e-6)
 end
 
 function pMI_kernel_gpu(marginals, p_s, notp_s, p_nots, notp_nots,
@@ -199,6 +199,6 @@ function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=false, α=1.0)
         error("mutual_information not defined for k=$k")
     end
 
-    println("MI : $mi")
+    # println("MI : $mi")
     return mi
 end
