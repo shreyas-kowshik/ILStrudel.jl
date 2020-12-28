@@ -7,12 +7,17 @@ using ProbabilisticCircuits
 using ILStrudel
 using Statistics
 using ArgParse
+using JLD
 
 """
-(depth=3)
-julia example_train.jl --name dna --population_size 50000 
---pmi_thresh 0.01 --pseudocount 1.0 --maxiter 200 --num_mine_samples 10 --mine_iterations 3
+Logs :
+Save Bitmasks (some directory)
+    - 
 """
+
+BASE = homedir()
+BITMASK_DIR = joinpath(BASE, "ILStrudel/bitmasks")
+LOG_DIR = joinpath(BASE, "ILStrudel/log")
 
 function single_model()
     # pc = learn_single_model("nltcs")
@@ -29,7 +34,11 @@ function single_model()
         return_vtree=false)
 end
 
-function mine_model(dataset_name; 
+function save_bitmasks(path::String, bm_config)
+
+end
+
+function mine_model(dataset_name, config_dict; 
     mine_iterations=1,
     population_size=population_size,
     num_mine_samples=10,
@@ -39,11 +48,28 @@ function mine_model(dataset_name;
     seed=nothing,
     return_vtree=false,
     return_bitmasks=true,
-    pmi_thresh=0.1)
+    pmi_thresh=0.1,
+    load_bitmask_path=nothing,
+    load_bitmasks=false)
 
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
     pick_edge = "eFlow"
     pick_var = "vMI"
+    config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
+
+    if !isnothing(load_bitmask_path)
+        bitmasks = load(load_bitmask_path)["bitmasks"]
+        println("Loaded Bitmasks!")
+    else
+        if load_bitmasks
+            save_path = joinpath(BITMASK_DIR, dataset_name)
+            load_bitmask_path = joinpath(save_path, config_name)
+            bitmasks = load(load_bitmask_path)["bitmasks"]
+            println("Loaded Bitmasks!")
+        else
+            bitmasks = nothing
+        end
+    end
     
     pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
         mine_iterations=mine_iterations,
@@ -56,7 +82,18 @@ function mine_model(dataset_name;
         seed=seed,
         return_vtree=return_vtree,
         return_bitmasks=return_bitmasks,
-        pmi_thresh=pmi_thresh)
+        pmi_thresh=pmi_thresh,
+        bitmasks=bitmasks)
+
+
+    # Save Bitmasks
+    save_path = joinpath(BITMASK_DIR, dataset_name)
+    if !isdir(save_path)
+        mkpath(save_path)
+    end
+
+    save_file = joinpath(save_path, config_name)
+    save(save_file, "bitmasks", bitmasks)
 
     # Validation ll computation
     weights = [sum(bitmask) / size(train_x)[1] for bitmask in bitmasks]
@@ -86,13 +123,23 @@ function mine_model(dataset_name;
     vals = maximum(test_lls, dims=2)
     test_ll = mean(vals)
 
-    println("Train LL : $(train_ll)")
-    println("Valid_LL : $(valid_ll)")
-    println("Test LL : $(test_ll)")
+    config_dict["train_ll"] = train_ll
+    config_dict["valid_ll"] = valid_ll
+    config_dict["test_ll"] = test_ll
     bit_lengths = [sum(b) for b in bitmasks]
     total_params = sum([num_parameters(pc) for pc in pcs])
-    println(bit_lengths)
-    println("Total Parameters : $(total_params)")
+    config_dict["params"] = total_params
+
+    # Save Results
+    save_path = joinpath(LOG_DIR, dataset_name)
+    if !isdir(save_path)
+        mkpath(save_path)
+    end
+
+    file_id = length(readdir(save_path)) + 1
+    file_name = "$(file_id).jld"
+    save_file = joinpath(save_path, file_name)
+    save(save_file, "config_dict", config_dict)
     ###
 
 
@@ -152,7 +199,19 @@ function parse_commandline()
             help = ""
             arg_type = Float64
             default = 0.1
-      		required = false
+            required = false
+        
+        "--bitmask_path"
+            help = "Path where bitmasks are saved"
+            arg_type = String
+            default = nothing
+            required = false
+        
+        "--load_bitmasks"
+            help = "Whether to load bitmasks"
+            arg_type = Bool
+            default = false
+            required = false
 
         # "--split_h"
         #     help = "Split Heuristic"
@@ -185,10 +244,12 @@ end
 
 parsed_args = parse_commandline()
 
-mine_model(parsed_args["name"];
+mine_model(parsed_args["name"], parsed_args;
 mine_iterations=parsed_args["mine_iterations"],
 population_size=parsed_args["population_size"],
 num_mine_samples=parsed_args["num_mine_samples"],
 pseudocount=parsed_args["pseudocount"],
 maxiter=parsed_args["maxiter"],
-pmi_thresh=parsed_args["pmi_thresh"])
+pmi_thresh=parsed_args["pmi_thresh"],
+load_bitmask_path=parsed_args["bitmask_path"],
+load_bitmasks=parsed_args["load_bitmasks"])
