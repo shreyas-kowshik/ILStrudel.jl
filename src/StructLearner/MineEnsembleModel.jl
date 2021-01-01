@@ -25,6 +25,11 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     for bitmask in bitmasks
         println("Size of Bitmask : $(sum(bitmask))")
         println("$(size(bitmask))")
+
+	if(sum(bitmask) == 0)
+		continue
+	end
+
         bitmask = BitArray(bitmask)
         pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
         pick_edge=pick_edge, pick_var=pick_var, depth=1, 

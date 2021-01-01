@@ -140,6 +140,8 @@ function mine_model(dataset_name, config_dict;
     file_name = "$(file_id).jld"
     save_file = joinpath(save_path, file_name)
     save(save_file, "config_dict", config_dict)
+
+    println(config_dict)
     ###
 
 
