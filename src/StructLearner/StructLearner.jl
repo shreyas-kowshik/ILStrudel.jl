@@ -21,11 +21,16 @@ export
 
 # SingleModel
 learn_single_model,
+learn_weighted_chow_liu_tree_circuit,
 
 # MineEnsembleModel
-learn_mine_ensemble
+learn_mine_ensemble,
+
+# BoostingModel
+Mixture, add_component, likelihood_per_instance, boosting
 
 include("SingleModel.jl")
 include("MineEnsembleModel.jl")
+include("BoostingModel.jl")
 
 end

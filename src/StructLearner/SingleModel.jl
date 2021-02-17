@@ -35,7 +35,17 @@ function _struct_learn(circuit::Node;
     circuit
 end
 
-
+function learn_weighted_chow_liu_tree_circuit(data;
+    pseudocount=1.0, vtree_kwargs=(vtree_mode="balanced",))
+    unweighted_data, weight = split_sample_weights(data)
+    algo_kwargs=(α=pseudocount, clt_root="graph_center", weight=weight)
+    clt = learn_chow_liu_tree(unweighted_data; algo_kwargs...)
+    vtree = learn_vtree_from_clt(clt; vtree_kwargs...)
+    lc = compile_sdd_from_clt(clt, vtree)
+    pc = ProbCircuit(lc)
+    estimate_parameters(pc, data; pseudocount=pseudocount)
+    pc, vtree
+end
 
 function learn_single_model(dataset_name::String)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
@@ -51,7 +61,11 @@ function learn_single_model(train_x, valid_x, test_x;
     return_vtree=false)
 
     # Initial Structure
-    pc, vtree = learn_chow_liu_tree_circuit(train_x)
+    if isweighted(train_x)
+        pc, vtree = learn_weighted_chow_liu_tree_circuit(train_x)
+    else
+        pc, vtree = learn_chow_liu_tree_circuit(train_x)
+    end
 
     learn_single_model(train_x, valid_x, test_x,
                 pc, vtree; pick_edge, pick_var, depth, pseudocount, sanity_check,

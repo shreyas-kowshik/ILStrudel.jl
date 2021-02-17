@@ -16,9 +16,15 @@ end
 Pick the variable with maximum sum of mutual information
 """
 function vMI(values, flows, edge, vars::Vector{Var}, train_x)
+    if isweighted(train_x)
+        train_x, weights = split_sample_weights(train_x)
+    else
+        weights = nothing
+    end
+
     examples_id = downflow_all(values, flows, num_examples(train_x), edge...)
     sub_matrix = train_x[examples_id, vars]
-    (_, mi) = mutual_information(sub_matrix; α=1.0)
+    (_, mi) = mutual_information(sub_matrix, weights; α=1.0)
     mi[diagind(mi)] .= 0
     scores = dropdims(sum(mi, dims = 1), dims = 1)
     var = vars[argmax(scores)]
@@ -165,9 +171,15 @@ function get_and_parents(circuit::Node)::Dict{Node, Vector{Node}}
 end
 
 function cloneFlowFull(circuit, candidates, train_x)
+    if isweighted(train_x)
+        train_x, weights = split_sample_weights(train_x)
+    else
+        weights = nothing
+    end
+
     and_parents_dict = get_and_parents(circuit)
 
-    values, flows = satisfies_flows(circuit, train_x; weights = nothing) # Do not use samples weights here
+    values, flows = satisfies_flows(circuit, train_x; weights = weights) # We are using weights here
     @inline flow(n) = downflow_all(values, flows, num_examples(train_x), n)
     @inline flow(n, c) = downflow_all(values, flows, num_examples(train_x), n, c)
 
@@ -240,7 +252,7 @@ function split_heuristic(circuit::LogicCircuit, train_x; pick_edge="w_ind", pick
     end
     
     candidates, variable_scope = split_candidates(circuit)
-    values, flows = satisfies_flows(circuit, train_x; weights = nothing) # Do not use samples weights here
+    values, flows = satisfies_flows(circuit, train_x; weights = weights) # Do not use samples weights here
 
     or = nothing
     and = nothing

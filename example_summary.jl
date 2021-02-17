@@ -53,6 +53,37 @@ function create_summary(log_path, header)
     save_as_csv(summary_dict; filename=joinpath(log_path, "../summary.csv"), header=header)
 end
 
+function jld_summary(log_path)
+    summary_dict = Dict()
+    dsets = readdir(log_path)
+    init_keys = false
+
+    for dset in dsets
+        dset_path = joinpath(log_path, dset)
+
+        for log in readdir(dset_path)
+            d = load(joinpath(dset_path, log))["config_dict"]
+
+            if !init_keys
+                for k in keys(d)
+                    summary_dict[k] = []
+                end
+                init_keys = true
+            end
+
+            for k in keys(d)
+                if isnothing(d[k])
+                    push!(summary_dict[k], "NULL")
+                else
+                    push!(summary_dict[k], d[k])
+                end
+            end
+        end
+    end
+
+    save_as_csv(summary_dict; filename=joinpath(log_path, "../runs.csv"))
+end
+
 function parse_commandline()
     s = ArgParseSettings()
 
@@ -70,3 +101,5 @@ end
 parsed_args = parse_commandline()
 header = ["dataset", "test_ll", "size"]
 create_summary(parsed_args["logdir"], header)
+
+jld_summary(parsed_args["logdir"])

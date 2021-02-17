@@ -17,6 +17,26 @@ using ILStrudel
         pick_edge=pick_edge, pick_var=pick_var, depth=1,
         pseudocount=1.0,
         sanity_check=true,
+        maxiter=10,
+        seed=nothing,
+        return_vtree=false)
+end
+
+@testset "Weighted Call" begin
+    # pc = learn_single_model("nltcs")
+
+    train_x, valid_x, test_x = twenty_datasets("nltcs")
+    weights = rand(num_examples(train_x))
+    weights = weights ./ sum(weights)
+    train_x = add_sample_weights(train_x, weights)
+
+    pick_edge = "eFlow"
+    pick_var = "vMI"
+    
+    pc = learn_single_model(train_x, valid_x, test_x;
+        pick_edge=pick_edge, pick_var=pick_var, depth=1,
+        pseudocount=1.0,
+        sanity_check=true,
         maxiter=100,
         seed=nothing,
         return_vtree=false)
