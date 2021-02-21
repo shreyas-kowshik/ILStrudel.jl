@@ -55,7 +55,7 @@ end
 #     return F_t_1
 # end
 
-log_likelihood_per_instance(m::Mixture, data; # weighted data not passed here, only passed during learning phase
+mixture_log_likelihood_per_instance(m::Mixture, data; # weighted data not passed here, only passed during learning phase
                             pseudocount=1.0, batch_size=0, use_gpu=false) = begin
         lls = hcat([log_likelihood_per_instance(pc, data) for pc in m.components]...)
         weights = reshape(m.weights, 1, length(m.weights))
@@ -131,7 +131,7 @@ function boosting_shared_structure(train_x, valid_x, test_x, num_components;
     for i in 1:num_components
         pc2 = deepcopy(pc)
         println("Boosting Iteration : $i")
-        F_t_1 = likelihood_per_instance(mixture, train_x)
+        F_t_1 = mixture_log_likelihood_per_instance(mixture, train_x)
         w = -1.0 .* F_t_1
         w = normalize(w, N)
         weighted_train_x = add_sample_weights(copy(train_x), w)
@@ -182,7 +182,7 @@ function boosting(train_x, valid_x, test_x, num_components;
     println("Boosting Started")
     for i in 1:num_components
         println("Boosting Iteration : $i")
-        F_t_1 = log_likelihood_per_instance(mixture, train_x)
+        F_t_1 = mixture_log_likelihood_per_instance(mixture, train_x)
 
         println("---F_t_1---")
         print_stats(F_t_1)
