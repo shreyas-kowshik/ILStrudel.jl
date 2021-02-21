@@ -167,9 +167,9 @@ function boosting_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0,
     else
         mixture = boosting(train_x, valid_x, test_x, num_boosting_components; pseudocount=pseudocount, maxiter=maxiter)
     end
-    train_ll = mean(log.(likelihood_per_instance(mixture, train_x)))
-    valid_ll = mean(log.(likelihood_per_instance(mixture, valid_x)))
-    test_ll = mean(log.(likelihood_per_instance(mixture, test_x)))
+    train_ll = mean(log_likelihood_per_instance(mixture, train_x))
+    valid_ll = mean(log_likelihood_per_instance(mixture, valid_x))
+    test_ll = mean(log_likelihood_per_instance(mixture, test_x))
     num_params = sum([num_parameters(pc) for pc in mixture.components])
 
     config_dict["train_ll"] = train_ll
