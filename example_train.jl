@@ -158,10 +158,15 @@ function mine_model(dataset_name, config_dict;
     # println(test_ll)
 end
 
-function boosting_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0, num_boosting_components=5)
+function boosting_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0, num_boosting_components=5,
+                        share_structure=false)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
 
-    mixture = boosting(train_x, valid_x, test_x, num_boosting_components; pseudocount=pseudocount, maxiter=maxiter)
+    if share_structure
+        mixture = boosting_shared_structure(train_x, valid_x, test_x, num_boosting_components; pseudocount=pseudocount, maxiter=maxiter)
+    else
+        mixture = boosting(train_x, valid_x, test_x, num_boosting_components; pseudocount=pseudocount, maxiter=maxiter)
+    end
     train_ll = mean(log.(likelihood_per_instance(mixture, train_x)))
     valid_ll = mean(log.(likelihood_per_instance(mixture, valid_x)))
     test_ll = mean(log.(likelihood_per_instance(mixture, test_x)))
@@ -182,6 +187,30 @@ function boosting_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0,
     save_file = joinpath(save_path, file_name)
     save(save_file, "config_dict", config_dict)
 
+    println(config_dict)
+end
+
+function weighted_single_model(dataset_name, config_dict; pseudocount=1.0, maxiter=200)
+    train_x, valid_x, test_x = twenty_datasets(dataset_name)
+    N = size(train_x)[1]
+    w = ones(N)
+    w[1:100] = 2.0
+    w[101:200] = 5.0
+    w = (w .- minimum(w)) ./ (maximum(w) - minimum(w))
+    println(sum(w))
+
+    weighted_train_x = add_sample_weights(train_x, w)
+    pc, vtree = learn_weighted_chow_liu_tree_circuit(weighted_train_x)
+    pc = learn_single_model(weighted_train_x, valid_x, test_x, pc, vtree;
+                           pseudocount=pseudocount,
+                           maxiter=maxiter)
+
+    train_lls = mean(log_likelihood_per_instance(pc, train_x))
+    valid_lls = mean(log_likelihood_per_instance(pc, valid_x))
+    test_lls = mean(log_likelihood_per_instance(pc, test_x))
+    config_dict["train_ll"] = train_ll
+    config_dict["valid_ll"] = valid_ll
+    config_dict["test_ll"] = test_ll
     println(config_dict)
 end
 
@@ -293,4 +322,8 @@ boosting_model(parsed_args["name"], parsed_args;
               maxiter=parsed_args["maxiter"],
               pseudocount=parsed_args["pseudocount"],
               num_boosting_components=parsed_args["num_boosting_components"])
+
+# weighted_single_model(parsed_args["name"], parsed_args;
+#               maxiter=parsed_args["maxiter"],
+#               pseudocount=parsed_args["pseudocount"])
 

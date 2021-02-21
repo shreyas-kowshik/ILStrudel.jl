@@ -27,7 +27,7 @@ learn_weighted_chow_liu_tree_circuit,
 learn_mine_ensemble,
 
 # BoostingModel
-Mixture, add_component, likelihood_per_instance, boosting
+Mixture, add_component, likelihood_per_instance, boosting, boosting_shared_structure
 
 include("SingleModel.jl")
 include("MineEnsembleModel.jl")

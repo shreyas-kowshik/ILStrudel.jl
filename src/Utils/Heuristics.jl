@@ -252,6 +252,8 @@ function split_heuristic(circuit::LogicCircuit, train_x; pick_edge="w_ind", pick
     end
     
     candidates, variable_scope = split_candidates(circuit)
+    # This seems to use sum of weights along at the appropriate places of ones in a bitmask
+    # The flows are returned accordingly
     values, flows = satisfies_flows(circuit, train_x; weights = weights) # Do not use samples weights here
 
     or = nothing
