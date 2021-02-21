@@ -25,6 +25,9 @@ end
 function normalize(w, N)
     # w = w .- maximum(w)
     # println("Normalize : Sum W : $(sum(w))")
+    println("Normalize : $(sum(w))")
+    println("Maximum : $(maximum(w))")
+    println("Minimum : $(minimum(w))")
     w = w ./ sum(w)
     w = w .* N
     w
@@ -57,7 +60,7 @@ likelihood_per_instance(m::Mixture, data; # weighted data not passed here, only 
         lls = hcat([log_likelihood_per_instance(pc, data) for pc in m.components]...)
         weights = reshape(m.weights, 1, length(m.weights))
         lls .= lls .+ log.(weights)
-        sum(exp.(lls), dims=2)
+        logsumexp(lls, dims=2)
 end
 
 function EM(m::Mixture, train_x; num_iters=5, pseudocount=1.0)
@@ -76,6 +79,8 @@ function EM(m::Mixture, train_x; num_iters=5, pseudocount=1.0)
         log_p_x_given_z = hcat([log_likelihood_per_instance(pc, train_x) for pc in m.components]...)
         log_p_x_and_z = log_p_x_given_z .+ log.(component_weights)
         log_p_x = logsumexp(log_p_x_and_z, dims=2)
+
+        @assert abs(1.0 - sum(exp.(log_p_x))) < 1e-6 "Probability not summing to 1"
 
         ll_x = mean(log_p_x)
         # if prev_val - ll_x < 1e-3
@@ -127,7 +132,7 @@ function boosting_shared_structure(train_x, valid_x, test_x, num_components;
         pc2 = deepcopy(pc)
         println("Boosting Iteration : $i")
         F_t_1 = likelihood_per_instance(mixture, train_x)
-        w = 1.0 ./ F_t_1
+        w = -1.0 .* F_t_1
         w = normalize(w, N)
         weighted_train_x = add_sample_weights(copy(train_x), w)
         @assert isweighted(weighted_train_x) "Not weighted properly"
@@ -160,6 +165,13 @@ function boosting_shared_structure(train_x, valid_x, test_x, num_components;
     return mixture
 end
 
+function print_stats(x)
+    println("Maximum : $(maximum(x))")
+    println("Minimum : $(minimum(x))")
+    println("Sum : $(sum(x))")
+    println("---------")
+end
+
 function boosting(train_x, valid_x, test_x, num_components;
                  pseudocount=1.0, maxiter=100)
     N = size(train_x)[1]
@@ -171,7 +183,11 @@ function boosting(train_x, valid_x, test_x, num_components;
     for i in 1:num_components
         println("Boosting Iteration : $i")
         F_t_1 = likelihood_per_instance(mixture, train_x)
-        println("Mixture LL : $(mean(log.(F_t_1)))")
+
+        println("---F_t_1---")
+        print_stats(F_t_1)
+
+        println("Mixture LL : $(mean(F_t_1))")
         # Sum w has to be N
         w = 1.0 ./ F_t_1
         # println("---W Stats---")
