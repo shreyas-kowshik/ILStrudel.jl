@@ -80,7 +80,7 @@ function EM(m::Mixture, train_x; num_iters=5, pseudocount=1.0)
         log_p_x_and_z = log_p_x_given_z .+ log.(component_weights)
         log_p_x = logsumexp(log_p_x_and_z, dims=2)
 
-        @assert abs(1.0 - sum(exp.(log_p_x))) < 1e-6 "Probability not summing to 1"
+        # @assert abs(1.0 - sum(exp.(log_p_x))) < 1e-6 "Probability not summing to 1"
 
         ll_x = mean(log_p_x)
         # if prev_val - ll_x < 1e-3
