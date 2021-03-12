@@ -5,8 +5,4 @@ Independence-Based Learning of Structured-Decomposable Circuits.
 
 ### TODO :
 
-Code :
-    - Heuristics
-
-Tests
-    - MI
+Make Training setup of ensembles lightweight by storing only log-likelihoods
