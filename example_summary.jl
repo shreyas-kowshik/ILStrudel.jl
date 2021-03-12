@@ -62,6 +62,7 @@ function jld_summary(log_path)
         dset_path = joinpath(log_path, dset)
 
         for log in readdir(dset_path)
+            println(joinpath(dset_path, log))
             d = load(joinpath(dset_path, log))["config_dict"]
 
             if !init_keys

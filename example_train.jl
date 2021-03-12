@@ -18,6 +18,7 @@ Save Bitmasks (some directory)
 BASE = homedir()
 BITMASK_DIR = joinpath(BASE, "ILStrudel/bitmasks")
 LOG_DIR = joinpath(BASE, "ILStrudel/log/boosting")
+BAGGING_LOG_DIR = joinpath(BASE, "ILStrudel/log/bagging")
 
 function single_model()
     # pc = learn_single_model("nltcs")
@@ -190,6 +191,41 @@ function boosting_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0,
     println(config_dict)
 end
 
+function bagging_em_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0, num_bagging_components=5,
+                        num_em_components=3)
+    train_x, valid_x, test_x = twenty_datasets(dataset_name)
+
+    bags = bagging(train_x, valid_x, test_x, num_bagging_components; num_em_components=num_em_components,
+		   maxiter=maxiter, pseudocount=pseudocount)
+    train_lls = hcat([mixture_log_likelihood_per_instance(mixture, train_x) for mixture in bags]...)
+    valid_lls = hcat([mixture_log_likelihood_per_instance(mixture, valid_x) for mixture in bags]...)
+    test_lls = hcat([mixture_log_likelihood_per_instance(mixture, test_x) for mixture in bags]...)
+
+    println("\n\n\nSize : $(size(train_lls))\n\n\n")
+    train_ll = mean(logsumexp(train_lls, dims=2) .+ log.(1.0 ./ num_bagging_components))
+    valid_ll = mean(logsumexp(valid_lls, dims=2) .+ log.(1.0 ./ num_bagging_components))
+    test_ll = mean(logsumexp(test_lls, dims=2) .+ log.(1.0 ./ num_bagging_components))
+
+    num_params = sum([sum([num_parameters(pc) for pc in mixture.components]) for mixture in bags])
+
+    config_dict["train_ll"] = train_ll
+    config_dict["valid_ll"] = valid_ll
+    config_dict["test_ll"] = test_ll
+    config_dict["params"] = num_params
+
+    save_path = joinpath(BAGGING_LOG_DIR, dataset_name)
+    if !isdir(save_path)
+        mkpath(save_path)
+    end
+    
+    file_id = length(readdir(save_path)) + 1
+    file_name = "bagging_$(file_id).jld"
+    save_file = joinpath(save_path, file_name)
+    save(save_file, "config_dict", config_dict)
+
+    println(config_dict)
+end
+
 function weighted_single_model(dataset_name, config_dict; pseudocount=1.0, maxiter=200)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
     N = size(train_x)[1]
@@ -277,6 +313,17 @@ function parse_commandline()
             default = 5
             required = false
 
+        "--num_bagging_components"
+            help = "Number of Boosting Components"
+            arg_type = Int
+            default = 5
+            required = false
+	
+        "--num_em_components"
+            help = "Number of Boosting Components"
+            arg_type = Int
+            default = 5
+            required = false
         # "--split_h"
         #     help = "Split Heuristic"
         #     arg_type = String
@@ -318,10 +365,16 @@ parsed_args = parse_commandline()
 # load_bitmask_path=parsed_args["bitmask_path"],
 # load_bitmasks=parsed_args["load_bitmasks"])
 
-boosting_model(parsed_args["name"], parsed_args;
+# boosting_model(parsed_args["name"], parsed_args;
+#               maxiter=parsed_args["maxiter"],
+#               pseudocount=parsed_args["pseudocount"],
+#               num_boosting_components=parsed_args["num_boosting_components"])
+
+bagging_em_model(parsed_args["name"], parsed_args;
               maxiter=parsed_args["maxiter"],
               pseudocount=parsed_args["pseudocount"],
-              num_boosting_components=parsed_args["num_boosting_components"])
+              num_bagging_components=parsed_args["num_bagging_components"],
+	      num_em_components=parsed_args["num_em_components"])
 
 # weighted_single_model(parsed_args["name"], parsed_args;
 #               maxiter=parsed_args["maxiter"],
