@@ -109,19 +109,22 @@ function mine_model(dataset_name, config_dict;
     println(size(test_lls))
 
     ###
-    idx = [t[2] for t in argmax(train_lls, dims=2)]
-    println(maximum(idx))
+    # idx = [t[2] for t in argmax(train_lls, dims=2)]
+    # println(maximum(idx))
     vals = maximum(train_lls, dims=2)
+    # vals = mean(train_lls, dims=2)
     train_ll = mean(vals)
 
-    idx = [t[2] for t in argmax(valid_lls, dims=2)]
-    println(maximum(idx))
-    vals = maximum(valid_lls, dims=2)
+    # idx = [t[2] for t in argmax(valid_lls, dims=2)]
+    # println(maximum(idx))
+    vals = maximum(train_lls, dims=2)
+    # vals = mean(train_lls, dims=2)
     valid_ll = mean(vals)
 
-    idx = [t[2] for t in argmax(test_lls, dims=2)]
-    println(maximum(idx))
-    vals = maximum(test_lls, dims=2)
+    # idx = [t[2] for t in argmax(test_lls, dims=2)]
+    # println(maximum(idx))
+    vals = maximum(train_lls, dims=2)
+    # vals = mean(train_lls, dims=2)
     test_ll = mean(vals)
 
     config_dict["train_ll"] = train_ll
@@ -355,26 +358,26 @@ end
 
 parsed_args = parse_commandline()
 
-# mine_model(parsed_args["name"], parsed_args;
-# mine_iterations=parsed_args["mine_iterations"],
-# population_size=parsed_args["population_size"],
-# num_mine_samples=parsed_args["num_mine_samples"],
-# pseudocount=parsed_args["pseudocount"],
-# maxiter=parsed_args["maxiter"],
-# pmi_thresh=parsed_args["pmi_thresh"],
-# load_bitmask_path=parsed_args["bitmask_path"],
-# load_bitmasks=parsed_args["load_bitmasks"])
+mine_model(parsed_args["name"], parsed_args;
+mine_iterations=parsed_args["mine_iterations"],
+population_size=parsed_args["population_size"],
+num_mine_samples=parsed_args["num_mine_samples"],
+pseudocount=parsed_args["pseudocount"],
+maxiter=parsed_args["maxiter"],
+pmi_thresh=parsed_args["pmi_thresh"],
+load_bitmask_path=parsed_args["bitmask_path"],
+load_bitmasks=parsed_args["load_bitmasks"])
 
 # boosting_model(parsed_args["name"], parsed_args;
 #               maxiter=parsed_args["maxiter"],
 #               pseudocount=parsed_args["pseudocount"],
 #               num_boosting_components=parsed_args["num_boosting_components"])
 
-bagging_em_model(parsed_args["name"], parsed_args;
-              maxiter=parsed_args["maxiter"],
-              pseudocount=parsed_args["pseudocount"],
-              num_bagging_components=parsed_args["num_bagging_components"],
-	      num_em_components=parsed_args["num_em_components"])
+# bagging_em_model(parsed_args["name"], parsed_args;
+#               maxiter=parsed_args["maxiter"],
+#               pseudocount=parsed_args["pseudocount"],
+#               num_bagging_components=parsed_args["num_bagging_components"],
+# 	      num_em_components=parsed_args["num_em_components"])
 
 # weighted_single_model(parsed_args["name"], parsed_args;
 #               maxiter=parsed_args["maxiter"],
