@@ -63,7 +63,12 @@ mixture_log_likelihood_per_instance(m::Mixture, data; # weighted data not passed
         logsumexp(lls, dims=2)
 end
 
-function EM(m::Mixture, train_x; num_iters=5, pseudocount=1.0)
+function mined_initial_weights(train_x, num_components)
+    w = ones(num_components) ./ num_components
+
+end
+
+function EM(m::Mixture, train_x; num_iters=7, pseudocount=1.0)
     # Initialise
     num_components = length(m.components)
     # component_weights = ones(num_components) ./ num_components

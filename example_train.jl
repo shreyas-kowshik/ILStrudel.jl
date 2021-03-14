@@ -164,6 +164,82 @@ function mine_model(dataset_name, config_dict;
     # println(test_ll)
 end
 
+function mine_em_model(dataset_name, config_dict; 
+    mine_iterations=1,
+    population_size=population_size,
+    num_mine_samples=10,
+    pseudocount=1e-9,
+    sanity_check=true,
+    maxiter=700,
+    seed=nothing,
+    return_vtree=false,
+    return_bitmasks=true,
+    pmi_thresh=0.1,
+    load_bitmask_path=nothing,
+    load_bitmasks=false)
+
+    train_x, valid_x, test_x = twenty_datasets(dataset_name)
+    pick_edge = "eFlow"
+    pick_var = "vMI"
+    config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
+
+    if !isnothing(load_bitmask_path)
+        bitmasks = load(load_bitmask_path)["bitmasks"]
+        println("Loaded Bitmasks!")
+    else
+        if load_bitmasks
+            save_path = joinpath(BITMASK_DIR, dataset_name)
+            load_bitmask_path = joinpath(save_path, config_name)
+            bitmasks = load(load_bitmask_path)["bitmasks"]
+            println("Loaded Bitmasks!")
+        else
+            bitmasks = nothing
+        end
+    end
+    
+    pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
+        mine_iterations=mine_iterations,
+        population_size=population_size,
+        num_mine_samples=num_mine_samples,
+        pick_edge=pick_edge, pick_var=pick_var, depth=3,
+        pseudocount=pseudocount,
+        sanity_check=sanity_check,
+        maxiter=maxiter,
+        seed=seed,
+        return_vtree=return_vtree,
+        return_bitmasks=return_bitmasks,
+        pmi_thresh=pmi_thresh,
+        bitmasks=bitmasks)
+
+    mixture = Mixture()
+    for pc in pcs
+        add_component(mixture, pc)
+    end
+
+    mixture = EM(mixture, train_x; pseudocount=pseudocount)
+    train_ll = mean(mixture_log_likelihood_per_instance(mixture, train_x))
+    valid_ll = mean(mixture_log_likelihood_per_instance(mixture, valid_x))
+    test_ll = mean(mixture_log_likelihood_per_instance(mixture, test_x))
+    num_params = sum([num_parameters(pc) for pc in mixture.components])
+
+    config_dict["train_ll"] = train_ll
+    config_dict["valid_ll"] = valid_ll
+    config_dict["test_ll"] = test_ll
+    config_dict["params"] = num_params
+
+    save_path = joinpath(LOG_DIR, dataset_name)
+    if !isdir(save_path)
+        mkpath(save_path)
+    end
+    
+    file_id = length(readdir(save_path)) + 1
+    file_name = "mine_em_$(file_id).jld"
+    save_file = joinpath(save_path, file_name)
+    save(save_file, "config_dict", config_dict)
+
+    println(config_dict)
+end
+
 function boosting_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0, num_boosting_components=5,
                         share_structure=false)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
@@ -360,7 +436,7 @@ end
 
 parsed_args = parse_commandline()
 
-mine_model(parsed_args["name"], parsed_args;
+mine_em_model(parsed_args["name"], parsed_args;
 mine_iterations=parsed_args["mine_iterations"],
 population_size=parsed_args["population_size"],
 num_mine_samples=parsed_args["num_mine_samples"],
