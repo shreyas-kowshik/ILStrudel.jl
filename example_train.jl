@@ -111,20 +111,22 @@ function mine_model(dataset_name, config_dict;
     ###
     # idx = [t[2] for t in argmax(train_lls, dims=2)]
     # println(maximum(idx))
-    vals = maximum(train_lls, dims=2)
-    # vals = mean(train_lls, dims=2)
+    # vals = maximum(train_lls, dims=2)
+
+    println("Train LL Size : $(size(train_lls))")
+    vals = logsumexp(train_lls, dims=2) .+ log(1.0 / (size(train_lls)[2]))
     train_ll = mean(vals)
 
     # idx = [t[2] for t in argmax(valid_lls, dims=2)]
     # println(maximum(idx))
-    vals = maximum(train_lls, dims=2)
-    # vals = mean(train_lls, dims=2)
+    # vals = maximum(train_lls, dims=2)
+    vals = logsumexp(valid_lls, dims=2) .+ log(1.0 / (size(valid_lls)[2]))
     valid_ll = mean(vals)
 
     # idx = [t[2] for t in argmax(test_lls, dims=2)]
     # println(maximum(idx))
-    vals = maximum(train_lls, dims=2)
-    # vals = mean(train_lls, dims=2)
+    # vals = maximum(train_lls, dims=2)
+    vals = logsumexp(test_lls, dims=2) .+ log(1.0 / (size(test_lls)[2]))
     test_ll = mean(vals)
 
     config_dict["train_ll"] = train_ll
