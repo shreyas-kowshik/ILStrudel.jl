@@ -208,7 +208,7 @@ function bootstrap_mutual_information(mat, vars_x, vars_y; num_bags=10, k=1, use
 
     # Value should ideally be zero but still passing it to code which should handle it
     if num_examples == 0
-        return _mutual_information(mat_bootstrap, vars_x, vars_y; k=k, use_gpu=use_gpu, α=α)
+        return _mutual_information(mat, vars_x, vars_y; k=k, use_gpu=use_gpu, α=α)
     end
 
     MIs = []
