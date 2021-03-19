@@ -164,7 +164,6 @@ function pMI_gpu(dmat, vars_x, vars_y; α=1.0)
     return cpu_pMI
 end
 
-
 """
 Given bit-matrix `mat` compute empirical-mutual-information between two sets of variables `vars_x` and `vars_y`
 
@@ -201,4 +200,23 @@ function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=false, α=1.0)
 
     # println("MI : $mi")
     return mi
+end
+
+function bootstrap_mutual_information(mat, vars_x, vars_y; num_bags=10, k=1, use_gpu=false, α=1.0)
+    # println("MI Size : $(size(mat))")
+    num_examples = size(mat)[1]
+
+    # Value should ideally be zero but still passing it to code which should handle it
+    if num_examples == 0
+        return _mutual_information(mat_bootstrap, vars_x, vars_y; k=k, use_gpu=use_gpu, α=α)
+    end
+
+    MIs = []
+    for i in 1:num_bags
+		ids = rand(1:num_examples, num_examples)
+        mat_bootstrap = copy(mat[ids, :])
+        push!(MIs, _mutual_information(mat_bootstrap, vars_x, vars_y; k=k, use_gpu=use_gpu, α=α))
+    end
+
+    return mean(MIs)
 end

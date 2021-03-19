@@ -83,7 +83,7 @@ function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, trai
         end
 
         stotal = 0.0
-        stotal = _mutual_information(dmat[examples_id, :], prime_lits, sub_lits)
+        stotal =  bootstrap_mutual_information(dmat[examples_id, :], prime_lits, sub_lits)
 
         if stotal == 0.0
             continue
@@ -102,10 +102,10 @@ function w_ind(candidates::Vector{Tuple{Node, Node}}, values, flows, scope, trai
             s2 = Inf
 
             if sum(pos_scope) > 0
-                s1 = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
+                s1 = bootstrap_mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
             end
             if sum(neg_scope) > 0
-                s2 = _mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
+                s2 = bootstrap_mutual_information(dmat[pos_scope, :], prime_lits, sub_lits)
             end
 
             s = 0.0

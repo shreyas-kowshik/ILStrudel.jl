@@ -73,7 +73,7 @@ function learn_single_model(train_x, valid_x, test_x;
 end
 
 function learn_single_model(train_x, valid_x, test_x, pc, vtree;
-    pick_edge="eFlow", pick_var="vMI", depth=1,
+    pick_edge="w_ind", pick_var="w_ind", depth=1,
     pseudocount=1.0,
     sanity_check=true,
     maxiter=100,

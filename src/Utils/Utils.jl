@@ -21,7 +21,7 @@ split_heuristic,
 clone_heuristic,
 
 # IndependenceTest
-_mutual_information # '_' since it conflicts with `ProbabilisticCircuits.jl`'s definition
+_mutual_information, bootstrap_mutual_information # '_' since it conflicts with `ProbabilisticCircuits.jl`'s definition
 
 include("Heuristics.jl")
 include("IndepdenceTest.jl")

@@ -16,9 +16,9 @@ Save Bitmasks (some directory)
 """
 
 BASE = homedir()
-BITMASK_DIR = joinpath(BASE, "ILStrudel/bitmasks")
-LOG_DIR = joinpath(BASE, "ILStrudel/log/boosting")
-BAGGING_LOG_DIR = joinpath(BASE, "ILStrudel/log/bagging")
+BITMASK_DIR = joinpath(BASE, "ILStrudel/bitmasks_bag_mi")
+LOG_DIR = joinpath(BASE, "ILStrudel/log/boosting_bag_mi")
+BAGGING_LOG_DIR = joinpath(BASE, "ILStrudel/log/bagging_bag_mi")
 
 function single_model()
     # pc = learn_single_model("nltcs")
@@ -39,130 +39,132 @@ function save_bitmasks(path::String, bm_config)
 
 end
 
-function mine_model(dataset_name, config_dict; 
-    mine_iterations=1,
-    population_size=population_size,
-    num_mine_samples=10,
-    pseudocount=1e-9,
-    sanity_check=true,
-    maxiter=700,
-    seed=nothing,
-    return_vtree=false,
-    return_bitmasks=true,
-    pmi_thresh=0.1,
-    load_bitmask_path=nothing,
-    load_bitmasks=false)
+### This function has empirical issues with normalized probability distribution output ###
 
-    train_x, valid_x, test_x = twenty_datasets(dataset_name)
-    pick_edge = "eFlow"
-    pick_var = "vMI"
-    config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
+# function mine_model(dataset_name, config_dict; 
+#     mine_iterations=1,
+#     population_size=population_size,
+#     num_mine_samples=10,
+#     pseudocount=1e-9,
+#     sanity_check=true,
+#     maxiter=700,
+#     seed=nothing,
+#     return_vtree=false,
+#     return_bitmasks=true,
+#     pmi_thresh=0.1,
+#     load_bitmask_path=nothing,
+#     load_bitmasks=false)
 
-    if !isnothing(load_bitmask_path)
-        bitmasks = load(load_bitmask_path)["bitmasks"]
-        println("Loaded Bitmasks!")
-    else
-        if load_bitmasks
-            save_path = joinpath(BITMASK_DIR, dataset_name)
-            load_bitmask_path = joinpath(save_path, config_name)
-            bitmasks = load(load_bitmask_path)["bitmasks"]
-            println("Loaded Bitmasks!")
-        else
-            bitmasks = nothing
-        end
-    end
+#     train_x, valid_x, test_x = twenty_datasets(dataset_name)
+#     pick_edge = "eFlow"
+#     pick_var = "vMI"
+#     config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
+
+#     if !isnothing(load_bitmask_path)
+#         bitmasks = load(load_bitmask_path)["bitmasks"]
+#         println("Loaded Bitmasks!")
+#     else
+#         if load_bitmasks
+#             save_path = joinpath(BITMASK_DIR, dataset_name)
+#             load_bitmask_path = joinpath(save_path, config_name)
+#             bitmasks = load(load_bitmask_path)["bitmasks"]
+#             println("Loaded Bitmasks!")
+#         else
+#             bitmasks = nothing
+#         end
+#     end
     
-    pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
-        mine_iterations=mine_iterations,
-        population_size=population_size,
-        num_mine_samples=num_mine_samples,
-        pick_edge=pick_edge, pick_var=pick_var, depth=3,
-        pseudocount=pseudocount,
-        sanity_check=sanity_check,
-        maxiter=maxiter,
-        seed=seed,
-        return_vtree=return_vtree,
-        return_bitmasks=return_bitmasks,
-        pmi_thresh=pmi_thresh,
-        bitmasks=bitmasks)
+#     pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
+#         mine_iterations=mine_iterations,
+#         population_size=population_size,
+#         num_mine_samples=num_mine_samples,
+#         pick_edge=pick_edge, pick_var=pick_var, depth=3,
+#         pseudocount=pseudocount,
+#         sanity_check=sanity_check,
+#         maxiter=maxiter,
+#         seed=seed,
+#         return_vtree=return_vtree,
+#         return_bitmasks=return_bitmasks,
+#         pmi_thresh=pmi_thresh,
+#         bitmasks=bitmasks)
 
 
-    # Save Bitmasks
-    save_path = joinpath(BITMASK_DIR, dataset_name)
-    if !isdir(save_path)
-        mkpath(save_path)
-    end
+#     # Save Bitmasks
+#     save_path = joinpath(BITMASK_DIR, dataset_name)
+#     if !isdir(save_path)
+#         mkpath(save_path)
+#     end
 
-    save_file = joinpath(save_path, config_name)
-    save(save_file, "bitmasks", bitmasks)
+#     save_file = joinpath(save_path, config_name)
+#     save(save_file, "bitmasks", bitmasks)
 
-    # Validation ll computation
-    weights = [sum(bitmask) / size(train_x)[1] for bitmask in bitmasks]
-    println(weights)
-    println(sum(weights))
+#     # Validation ll computation
+#     weights = [sum(bitmask) / size(train_x)[1] for bitmask in bitmasks]
+#     println(weights)
+#     println(sum(weights))
 
-    train_lls = hcat([log_likelihood_per_instance(pc, train_x) for pc in pcs]...)
-    valid_lls = hcat([log_likelihood_per_instance(pc, valid_x) for pc in pcs]...)
-    test_lls = hcat([log_likelihood_per_instance(pc, test_x) for pc in pcs]...)
+#     train_lls = hcat([log_likelihood_per_instance(pc, train_x) for pc in pcs]...)
+#     valid_lls = hcat([log_likelihood_per_instance(pc, valid_x) for pc in pcs]...)
+#     test_lls = hcat([log_likelihood_per_instance(pc, test_x) for pc in pcs]...)
 
-    println(size(valid_lls))
-    println(size(test_lls))
+#     println(size(valid_lls))
+#     println(size(test_lls))
 
-    ###
-    # idx = [t[2] for t in argmax(train_lls, dims=2)]
-    # println(maximum(idx))
-    # vals = maximum(train_lls, dims=2)
+#     ###
+#     # idx = [t[2] for t in argmax(train_lls, dims=2)]
+#     # println(maximum(idx))
+#     # vals = maximum(train_lls, dims=2)
 
-    println("Train LL Size : $(size(train_lls))")
-    vals = logsumexp(train_lls, dims=2) .+ log(1.0 / (size(train_lls)[2]))
-    train_ll = mean(vals)
+#     println("Train LL Size : $(size(train_lls))")
+#     vals = logsumexp(train_lls, dims=2) .+ log(1.0 / (size(train_lls)[2]))
+#     train_ll = mean(vals)
 
-    # idx = [t[2] for t in argmax(valid_lls, dims=2)]
-    # println(maximum(idx))
-    # vals = maximum(train_lls, dims=2)
-    vals = logsumexp(valid_lls, dims=2) .+ log(1.0 / (size(valid_lls)[2]))
-    valid_ll = mean(vals)
+#     # idx = [t[2] for t in argmax(valid_lls, dims=2)]
+#     # println(maximum(idx))
+#     # vals = maximum(train_lls, dims=2)
+#     vals = logsumexp(valid_lls, dims=2) .+ log(1.0 / (size(valid_lls)[2]))
+#     valid_ll = mean(vals)
 
-    # idx = [t[2] for t in argmax(test_lls, dims=2)]
-    # println(maximum(idx))
-    # vals = maximum(train_lls, dims=2)
-    vals = logsumexp(test_lls, dims=2) .+ log(1.0 / (size(test_lls)[2]))
-    test_ll = mean(vals)
+#     # idx = [t[2] for t in argmax(test_lls, dims=2)]
+#     # println(maximum(idx))
+#     # vals = maximum(train_lls, dims=2)
+#     vals = logsumexp(test_lls, dims=2) .+ log(1.0 / (size(test_lls)[2]))
+#     test_ll = mean(vals)
 
-    config_dict["train_ll"] = train_ll
-    config_dict["valid_ll"] = valid_ll
-    config_dict["test_ll"] = test_ll
-    bit_lengths = [sum(b) for b in bitmasks]
-    total_params = sum([num_parameters(pc) for pc in pcs])
-    config_dict["params"] = total_params
+#     config_dict["train_ll"] = train_ll
+#     config_dict["valid_ll"] = valid_ll
+#     config_dict["test_ll"] = test_ll
+#     bit_lengths = [sum(b) for b in bitmasks]
+#     total_params = sum([num_parameters(pc) for pc in pcs])
+#     config_dict["params"] = total_params
 
-    # Save Results
-    save_path = joinpath(LOG_DIR, dataset_name)
-    if !isdir(save_path)
-        mkpath(save_path)
-    end
+#     # Save Results
+#     save_path = joinpath(LOG_DIR, dataset_name)
+#     if !isdir(save_path)
+#         mkpath(save_path)
+#     end
 
-    file_id = length(readdir(save_path)) + 1
-    file_name = "$(file_id).jld"
-    save_file = joinpath(save_path, file_name)
-    save(save_file, "config_dict", config_dict)
+#     file_id = length(readdir(save_path)) + 1
+#     file_name = "$(file_id).jld"
+#     save_file = joinpath(save_path, file_name)
+#     save(save_file, "config_dict", config_dict)
 
-    println(config_dict)
-    ###
+#     println(config_dict)
+#     ###
 
 
-    # prod_nodes = []
-    # for pc in pcs
-    #     push!(prod_nodes, children(pc)...)
-    # end
+#     # prod_nodes = []
+#     # for pc in pcs
+#     #     push!(prod_nodes, children(pc)...)
+#     # end
 
-    # ensemble_pc = disjoin(prod_nodes...)
-    # estimate_parameters(ensemble_pc, train_x; pseudocount=1.0)
-    # valid_ll = log_likelihood_avg(ensemble_pc, valid_x)
-    # test_ll = log_likelihood_avg(ensemble_pc, test_x)
-    # println(valid_ll)
-    # println(test_ll)
-end
+#     # ensemble_pc = disjoin(prod_nodes...)
+#     # estimate_parameters(ensemble_pc, train_x; pseudocount=1.0)
+#     # valid_ll = log_likelihood_avg(ensemble_pc, valid_x)
+#     # test_ll = log_likelihood_avg(ensemble_pc, test_x)
+#     # println(valid_ll)
+#     # println(test_ll)
+# end
 
 function mine_em_model(dataset_name, config_dict; 
     mine_iterations=1,
@@ -405,6 +407,13 @@ function parse_commandline()
             arg_type = Int
             default = 5
             required = false
+
+        "--num_mi_bags"
+            help = "Number of Bootstraps for mutual information computation"
+            arg_type = Int
+            default = 10
+            required = false
+        
         # "--split_h"
         #     help = "Split Heuristic"
         #     arg_type = String
@@ -436,20 +445,20 @@ end
 
 parsed_args = parse_commandline()
 
-mine_em_model(parsed_args["name"], parsed_args;
-mine_iterations=parsed_args["mine_iterations"],
-population_size=parsed_args["population_size"],
-num_mine_samples=parsed_args["num_mine_samples"],
-pseudocount=parsed_args["pseudocount"],
-maxiter=parsed_args["maxiter"],
-pmi_thresh=parsed_args["pmi_thresh"],
-load_bitmask_path=parsed_args["bitmask_path"],
-load_bitmasks=parsed_args["load_bitmasks"])
+# mine_em_model(parsed_args["name"], parsed_args;
+# mine_iterations=parsed_args["mine_iterations"],
+# population_size=parsed_args["population_size"],
+# num_mine_samples=parsed_args["num_mine_samples"],
+# pseudocount=parsed_args["pseudocount"],
+# maxiter=parsed_args["maxiter"],
+# pmi_thresh=parsed_args["pmi_thresh"],
+# load_bitmask_path=parsed_args["bitmask_path"],
+# load_bitmasks=parsed_args["load_bitmasks"])
 
-# boosting_model(parsed_args["name"], parsed_args;
-#               maxiter=parsed_args["maxiter"],
-#               pseudocount=parsed_args["pseudocount"],
-#               num_boosting_components=parsed_args["num_boosting_components"])
+boosting_model(parsed_args["name"], parsed_args;
+              maxiter=parsed_args["maxiter"],
+              pseudocount=parsed_args["pseudocount"],
+              num_boosting_components=parsed_args["num_boosting_components"])
 
 # bagging_em_model(parsed_args["name"], parsed_args;
 #               maxiter=parsed_args["maxiter"],
