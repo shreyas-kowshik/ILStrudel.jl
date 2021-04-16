@@ -223,6 +223,7 @@ function mine_em_model(dataset_name, config_dict;
     valid_ll = mean(mixture_log_likelihood_per_instance(mixture, valid_x))
     test_ll = mean(mixture_log_likelihood_per_instance(mixture, test_x))
     num_params = sum([num_parameters(pc) for pc in mixture.components])
+    println("Mixture Weights : $(mixture.weights)")
 
     config_dict["train_ll"] = train_ll
     config_dict["valid_ll"] = valid_ll
