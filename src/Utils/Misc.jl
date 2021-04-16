@@ -35,12 +35,15 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000)
         push!(mi50s)
     end
 
-    if !isdir("bin/pmi_stats")
-        mkpath("bin/pmi_stats")
+    if !isdir(joinpath("bin/pmi_stats", dataset))
+        mkpath(joinpath("bin/pmi_stats", dataset))
     end
 
     hist(mis, bins=20)
+    savefig(joinpath("bin/pmi_stats", dataset, "mis.png"))
     hist(mi20s, bins=20)
+    savefig(joinpath("bin/pmi_stats", dataset, "mi20s.png"))
     hist(mi50s, bins=20)
+    savefig(joinpath("bin/pmi_stats", dataset, "mi50s.png"))
 
 end
