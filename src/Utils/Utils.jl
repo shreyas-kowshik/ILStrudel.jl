@@ -20,10 +20,14 @@ export
 split_heuristic,
 clone_heuristic,
 
+# Miscellaneous
+generate_pmi_bagging_stats,
+
 # IndependenceTest
 _mutual_information, bootstrap_mutual_information # '_' since it conflicts with `ProbabilisticCircuits.jl`'s definition
 
 include("Heuristics.jl")
 include("IndepdenceTest.jl")
+include("Misc.jl")
 
 end
