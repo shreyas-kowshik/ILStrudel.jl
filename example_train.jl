@@ -17,7 +17,7 @@ Save Bitmasks (some directory)
 
 BASE = homedir()
 BITMASK_DIR = joinpath(BASE, "ILStrudel/bitmasks_bag_mi")
-LOG_DIR = joinpath(BASE, "ILStrudel/log/boosting_bag_mi")
+LOG_DIR = joinpath(BASE, "ILStrudel/log/mine_bag_mi")
 BAGGING_LOG_DIR = joinpath(BASE, "ILStrudel/log/bagging_bag_mi")
 
 function single_model()
@@ -445,20 +445,20 @@ end
 
 parsed_args = parse_commandline()
 
-# mine_em_model(parsed_args["name"], parsed_args;
-# mine_iterations=parsed_args["mine_iterations"],
-# population_size=parsed_args["population_size"],
-# num_mine_samples=parsed_args["num_mine_samples"],
-# pseudocount=parsed_args["pseudocount"],
-# maxiter=parsed_args["maxiter"],
-# pmi_thresh=parsed_args["pmi_thresh"],
-# load_bitmask_path=parsed_args["bitmask_path"],
-# load_bitmasks=parsed_args["load_bitmasks"])
+mine_em_model(parsed_args["name"], parsed_args;
+mine_iterations=parsed_args["mine_iterations"],
+population_size=parsed_args["population_size"],
+num_mine_samples=parsed_args["num_mine_samples"],
+pseudocount=parsed_args["pseudocount"],
+maxiter=parsed_args["maxiter"],
+pmi_thresh=parsed_args["pmi_thresh"],
+load_bitmask_path=parsed_args["bitmask_path"],
+load_bitmasks=parsed_args["load_bitmasks"])
 
-boosting_model(parsed_args["name"], parsed_args;
-              maxiter=parsed_args["maxiter"],
-              pseudocount=parsed_args["pseudocount"],
-              num_boosting_components=parsed_args["num_boosting_components"])
+# boosting_model(parsed_args["name"], parsed_args;
+#              maxiter=parsed_args["maxiter"],
+#              pseudocount=parsed_args["pseudocount"],
+#              num_boosting_components=parsed_args["num_boosting_components"])
 
 # bagging_em_model(parsed_args["name"], parsed_args;
 #               maxiter=parsed_args["maxiter"],

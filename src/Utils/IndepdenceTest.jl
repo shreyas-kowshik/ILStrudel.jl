@@ -202,7 +202,7 @@ function _mutual_information(mat, vars_x, vars_y; k=1, use_gpu=false, α=1.0)
     return mi
 end
 
-function bootstrap_mutual_information(mat, vars_x, vars_y; num_bags=10, k=1, use_gpu=false, α=1.0)
+function bootstrap_mutual_information(mat, vars_x, vars_y; num_bags=50, k=1, use_gpu=false, α=1.0)
     # println("MI Size : $(size(mat))")
     num_examples = size(mat)[1]
 
