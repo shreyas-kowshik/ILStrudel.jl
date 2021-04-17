@@ -1,5 +1,6 @@
 using Distributions
 using PyPlot
+using JLD
 
 function generate_pmi_bagging_stats(dataset; num_iters=1000)
     train_x, _, _ = twenty_datasets(dataset)
@@ -25,19 +26,27 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000)
     mi20s = []
     mi50s = []
     for i in 1:num_iters
+    	println("Iteration : $i")
         bm = BitArray(rand(d, n))
         mi = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=false, k=1, α=1.0)
         mi20 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=20, use_gpu=false, k=1, α=1.0)
-        mi50 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=false, k=1, α=1.0)
+        mi50 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=50, use_gpu=false, k=1, α=1.0)
 
-        push!(mis)
-        push!(mi20s)
-        push!(mi50s)
+        push!(mis, mi)
+        push!(mi20s, mi20)
+        push!(mi50s, mi50)
     end
 
     if !isdir(joinpath("bin/pmi_stats", dataset))
         mkpath(joinpath("bin/pmi_stats", dataset))
     end
+    
+    save_file = joinpath("bin/pmi_stats", dataset, "mis.jld")
+    save(save_file, "mis", mis)
+    save_file = joinpath("bin/pmi_stats", dataset, "mi20s.jld")
+    save(save_file, "mi20s", mi20s)
+    save_file = joinpath("bin/pmi_stats", dataset, "mi50s.jld")
+    save(save_file, "mi50s", mi50s)
 
     hist(mis, bins=20)
     savefig(joinpath("bin/pmi_stats", dataset, "mis.png"))
