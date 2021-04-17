@@ -225,6 +225,11 @@ function mine_em_model(dataset_name, config_dict;
         bitmasks=bitmasks)
 
     # Save the bitmasks
+    bitmask_save_path = save_path = joinpath(LOG_DIR, dataset_name, "bitmasks.jld")
+    if !isdir(bitmask_save_path)
+        mkpath(bitmask_save_path)
+    end
+    save(bitmask_save_path, "bitmasks", bitmasks)
 
     mixture = Mixture()
     for pc in pcs
