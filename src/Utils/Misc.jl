@@ -47,3 +47,28 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000)
     savefig(joinpath("bin/pmi_stats", dataset, "mi50s.png"))
 
 end
+
+"""
+dir : directory containing dataset names and `.jld` files
+"""
+function generate_plots(dir; bins=50)
+    ioff()
+    ld(x) = collect(values(load(x)))[1]
+
+    for dataset in readdir(dir)
+        path = joinpath(dir, dataset)
+        mis = ld(joinpath(path, "mis.jld"))
+        mi20s = ld(joinpath(path, "mi20s.jld"))
+        mi50s = ld(joinpath(path, "mi50s.jld"))
+
+        fig, ax = subplots(3)
+        fig.suptitle(dataset)
+        ax[1].hist(mis, bins=bins)
+        ax[2].hist(mis, bins=bins)
+        ax[2].hist(mi20s, bins=bins)
+        ax[3].hist(mis, bins=bins)
+        ax[3].hist(mi20s, bins=bins)
+        ax[3].hist(mi50s, bins=bins)
+        savefig(joinpath(path, "stats.png"))
+    end
+end

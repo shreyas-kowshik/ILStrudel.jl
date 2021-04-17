@@ -185,6 +185,8 @@ function mine_em_model(dataset_name, config_dict;
     pick_var = "vMI"
     config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
 
+    LOG_DIR = joinpath(BASE, "ILStrudel/runs/", config_dict["run_name"])
+
     if !isnothing(load_bitmask_path)
         bitmasks = load(load_bitmask_path)["bitmasks"]
         println("Loaded Bitmasks!")
@@ -199,6 +201,15 @@ function mine_em_model(dataset_name, config_dict;
         end
     end
     
+    # Get pmi_thresh from files
+    # Mean of values chosen
+    pmi_stats_path = joinpath("bin/pmi_stats/", dataset_name)
+    pmi_stats = collect(values(load(joinpath(pmi_stats_path, "mi20s.jld"))))[1]
+    # Set mean of the statistics
+    pmi_thresh = mean(pmi_stats)
+
+    println("PMI THRESH USED : $pmi_thresh")
+
     pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
         mine_iterations=mine_iterations,
         population_size=population_size,
@@ -212,6 +223,8 @@ function mine_em_model(dataset_name, config_dict;
         return_bitmasks=return_bitmasks,
         pmi_thresh=pmi_thresh,
         bitmasks=bitmasks)
+
+    # Save the bitmasks
 
     mixture = Mixture()
     for pc in pcs
@@ -340,6 +353,11 @@ function parse_commandline()
     @add_arg_table s begin
         "--name"
             help = "Name of the dataset"
+            arg_type = String
+            required = true
+
+        "--run_name"
+            help = "Name of the run"
             arg_type = String
             required = true
         
