@@ -271,9 +271,9 @@ function mine_em_model(dataset_name, config_dict;
     if !isdir(weights_path)
         mkpath(weights_path)
     end
-    save_vtree(joinpath(weights_path, "vt.vtree"), vtree)
     for (i, pc) in enumerate(mixture.components)
-        save_circuit(joinpath(weights_path, "pc_$i.psdd"), pc, vtree)
+        save_circuit(joinpath(weights_path, "pc_$i.psdd"), pc, pc.vtree)
+	save_vtree(joinpath(weights_path, "vt_$i.vtree"), pc.vtree)
     end
 
     println(config_dict)
