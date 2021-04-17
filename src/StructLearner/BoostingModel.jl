@@ -104,9 +104,13 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=7, pseudocount=1.0)
         component_weights = sum(exp.(log_p_z_given_x), dims=1)
         component_weights = normalize(component_weights, 1.0)
         @assert abs(1.0 - sum(component_weights)) < 1e-6 "Parameters do not sum to 1 : $(sum(component_weights))"
+
+	println("Pseudocount : $pseudocount")
         for i in 1:num_components
             weighted_train_x = add_sample_weights(copy(train_x), log_p_z_given_x[:, i])
-            estimate_parameters(m.components[i], weighted_train_x; pseudocount=pseudocount)
+	    pc = m.components[i]
+            estimate_parameters(pc, weighted_train_x; pseudocount=pseudocount)
+	    m.components[i] = pc
         end
     end
 
