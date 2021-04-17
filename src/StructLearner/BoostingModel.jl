@@ -68,12 +68,16 @@ function mined_initial_weights(train_x, num_components)
 
 end
 
-function EM(m::Mixture, train_x; num_iters=7, pseudocount=1.0)
+function EM(m::Mixture, train_x; weights=nothing, num_iters=7, pseudocount=1.0)
     # Initialise
     num_components = length(m.components)
     # component_weights = ones(num_components) ./ num_components
-    component_weights = initial_weights(train_x, num_components) # Use library function
+    if isnothing(weights)
+        component_weights = initial_weights(train_x, num_components) # Use library function
+    end
     component_weights = reshape(component_weights, 1, length(component_weights))
+
+    println("Initial Component Weights : $component_weights")
 
     # prev_val = Inf
 

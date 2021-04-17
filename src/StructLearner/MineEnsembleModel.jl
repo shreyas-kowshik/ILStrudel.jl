@@ -22,6 +22,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     end
 
     circuits = []
+    final_bitmasks = []
     for bitmask in bitmasks
         println("Size of Bitmask : $(sum(bitmask))")
         println("$(size(bitmask))")
@@ -29,6 +30,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
         if(sum(bitmask) == 0)
             continue
         end
+        push!(final_bitmasks, bitmask)
 
         bitmask = BitArray(bitmask)
         pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
@@ -41,6 +43,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
 
         push!(circuits, pc)
     end
+    bitmasks = copy(final_bitmasks)
 
     if return_bitmasks
         return circuits, bitmasks

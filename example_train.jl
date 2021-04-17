@@ -244,7 +244,8 @@ function mine_em_model(dataset_name, config_dict;
     # Get initial vtree
     _, vtree = learn_chow_liu_tree_circuit(train_x)
 
-    mixture = EM(mixture, train_x; pseudocount=pseudocount)
+    weights = [sum(bm) / length(bm) for bm in bitmasks]
+    mixture = EM(mixture, train_x; weights=weights, pseudocount=pseudocount)
     train_ll = mean(mixture_log_likelihood_per_instance(mixture, train_x))
     valid_ll = mean(mixture_log_likelihood_per_instance(mixture, valid_x))
     test_ll = mean(mixture_log_likelihood_per_instance(mixture, test_x))
