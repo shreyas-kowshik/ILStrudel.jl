@@ -185,7 +185,10 @@ function mine_em_model(dataset_name, config_dict;
     pick_var = "vMI"
     config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
 
-    LOG_DIR = joinpath(BASE, "ILStrudel/runs/", config_dict["run_name"])
+    LOG_DIR = joinpath(BASE, "runs/", config_dict["run_name"])
+    if !isdir(LOG_DIR)
+    	mkpath(LOG_DIR)
+    end
 
     if !isnothing(load_bitmask_path)
         bitmasks = load(load_bitmask_path)["bitmasks"]
@@ -225,10 +228,11 @@ function mine_em_model(dataset_name, config_dict;
         bitmasks=bitmasks)
 
     # Save the bitmasks
-    bitmask_save_path = save_path = joinpath(LOG_DIR, dataset_name, "bitmasks.jld")
+    bitmask_save_path = joinpath(LOG_DIR, dataset_name)
     if !isdir(bitmask_save_path)
         mkpath(bitmask_save_path)
     end
+    bitmask_save_path = joinpath(bitmask_save_path, "bitmasks.jld")
     save(bitmask_save_path, "bitmasks", bitmasks)
 
     mixture = Mixture()
