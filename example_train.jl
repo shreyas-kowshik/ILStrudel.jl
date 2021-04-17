@@ -10,9 +10,10 @@ using ArgParse
 using JLD
 
 """
-Logs :
-Save Bitmasks (some directory)
-    - 
+Circuit I/O template :
+save_circuit("tem.psdd", pc, vtree)
+save_vtree("tem.vtree", vtree)
+pc1 = load_struct_prob_circuit("tem.psdd", "tem.vtree")
 """
 
 BASE = homedir()
@@ -240,6 +241,9 @@ function mine_em_model(dataset_name, config_dict;
         add_component(mixture, pc)
     end
 
+    # Get initial vtree
+    _, vtree = learn_chow_liu_tree_circuit(train_x)
+
     mixture = EM(mixture, train_x; pseudocount=pseudocount)
     train_ll = mean(mixture_log_likelihood_per_instance(mixture, train_x))
     valid_ll = mean(mixture_log_likelihood_per_instance(mixture, valid_x))
@@ -257,10 +261,20 @@ function mine_em_model(dataset_name, config_dict;
         mkpath(save_path)
     end
     
+    config_dict["em_weights"] = mixture.weights
     file_id = length(readdir(save_path)) + 1
     file_name = "mine_em_$(file_id).jld"
     save_file = joinpath(save_path, file_name)
     save(save_file, "config_dict", config_dict)
+
+    weights_path = joinpath(save_path, "mine_em_$(file_id)")
+    if !isdir(weights_path)
+        mkpath(weights_path)
+    end
+    save_vtree(joinpath(weights_path, "vt.vtree"), vtree)
+    for (i, pc) in enumerate(mixture.components)
+        save_circuit(joinpath(weights_path, "pc_$i.psdd"), pc, vtree)
+    end
 
     println(config_dict)
 end
