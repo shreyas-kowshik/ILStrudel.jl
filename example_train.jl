@@ -238,6 +238,9 @@ function mine_em_model(dataset_name, config_dict;
 
     mixture = Mixture()
     for pc in pcs
+        # TODO : Experiment with this
+        # Re-estimate parameters over the entire dataset as a starting point
+        estimate_parameters(pc, train_x; pseudocount=pseudocount)
         add_component(mixture, pc)
     end
 
