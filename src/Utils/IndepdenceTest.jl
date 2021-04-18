@@ -97,7 +97,7 @@ function pMI_kernel_gpu(marginals, p_s, notp_s, p_nots, notp_nots,
     index_x = (blockIdx().x - 1) * blockDim().x + threadIdx().x
     index_y = (blockIdx().y - 1) * blockDim().y + threadIdx().y
 
-    if (index_x > num_prime_vars) || (index_y > num_sub_vars)
+    if (index_x > num_prime_vars + num_sub_vars) || (index_y > num_sub_vars + num_sub_vars)
         return nothing
     end
 
