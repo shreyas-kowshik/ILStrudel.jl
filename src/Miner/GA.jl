@@ -17,7 +17,7 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
             bm_mi[dict[instances[i, :]]] .= 1
         end
 
-        mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=false, k=1, α=1.0)
+        mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0)
    	# println("Verbose : $mi") 
         if mi < thresh && sum(bm) > 0
             return -1.0 * sum(bm)

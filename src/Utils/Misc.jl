@@ -123,6 +123,9 @@ function generate_pmi_runtime_stats()
 		# The first gpu kernel is slower, so to compensate for that
     		t = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=1, use_gpu=true, k=1, α=1.0)
 
+		mi_cpu_val = _mutual_information(dmat, prime_lits, sub_lits; k=1, use_gpu=false, α=1.0)
+		mi_gpu_val = _mutual_information(dmat, prime_lits, sub_lits; k=1, use_gpu=true, α=1.0)
+		
 		t0 = Base.time_ns()
     		mi_cpu = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=1, use_gpu=false, k=1, α=1.0)
 		t1 = Base.time_ns()
@@ -147,7 +150,7 @@ function generate_pmi_runtime_stats()
 		mi20_gpu = (t1 - t0)/1e9
 		println(mi20_gpu)
 
-		@assert isapprox(mi_cpu, mi_gpu; atol=1e-6) "cpu : $mi_cpu, gpu : $mi_gpu"
+		@assert isapprox(mi_cpu_val, mi_gpu_val; atol=1e-6) "cpu : $mi_cpu_val, gpu : $mi_gpu_val"
 
     		push!(datasets, dataset)
     		push!(mis_cpu, mi_cpu)

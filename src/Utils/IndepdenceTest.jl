@@ -97,7 +97,7 @@ function pMI_kernel_gpu(marginals, p_s, notp_s, p_nots, notp_nots,
     index_x = (blockIdx().x - 1) * blockDim().x + threadIdx().x
     index_y = (blockIdx().y - 1) * blockDim().y + threadIdx().y
 
-    if (index_x > num_prime_vars + num_sub_vars) || (index_y > num_sub_vars + num_sub_vars)
+    if (index_x > num_prime_vars) || (index_y > num_sub_vars)
         return nothing
     end
 
@@ -139,9 +139,9 @@ function pMI_gpu(dmat, vars_x, vars_y; α=1.0)
     mul!(d_nd, dmat_tr_gpu, not_dmat_gpu)
     mul!(nd_nd, not_dmat_tr_gpu, not_dmat_gpu)
 
-    d_d = (d_d .+ (4.0 * α)) ./ (N + 4.0 * α)
-    d_nd = (d_nd .+ (4.0 * α)) ./ (N + 4.0 * α)
-    nd_nd = (nd_nd .+ (4.0 * α)) ./ (N + 4.0 * α)
+    d_d = (d_d .+ (α)) ./ (N + 4.0 * α)
+    d_nd = (d_nd .+ (α)) ./ (N + 4.0 * α)
+    nd_nd = (nd_nd .+ (α)) ./ (N + 4.0 * α)
     marginals = (dropdims(count(dmat, dims=1), dims=1) .+ (2.0 * α)) ./ (N + 4.0 * α)
 
     p_s = d_d
