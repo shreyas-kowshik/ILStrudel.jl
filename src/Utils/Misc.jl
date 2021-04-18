@@ -1,6 +1,8 @@
 using Distributions
+using DataFrames
 using PyPlot
 using JLD
+using CSV
 
 function generate_pmi_bagging_stats(dataset; num_iters=1000)
     train_x, _, _ = twenty_datasets(dataset)
@@ -80,4 +82,88 @@ function generate_plots(dir; bins=50)
         ax[3].hist(mi50s, bins=bins)
         savefig(joinpath(path, "stats.png"))
     end
+end
+
+function save_as_csv(dict; filename, header=keys(dict))
+    table = DataFrame(;[Symbol(x) => dict[x] for x in header]...)
+    CSV.write(filename, table; )
+end
+
+function generate_pmi_runtime_stats()
+	save_dir = joinpath("bin")
+	if !isdir(save_dir)
+		mkpath(save_dir)
+	end
+
+	datasets = []
+	mis_cpu = []
+	mi20s_cpu = []
+	mis_gpu = []
+	mi20s_gpu = []
+
+
+	for dataset in twenty_dataset_names[1:end-1]
+		println(dataset)
+		train_x, _, _ = twenty_datasets(dataset)
+		println(size(train_x))
+	    	pc, vtree = learn_chow_liu_tree_circuit(train_x)
+		dmat = BitArray(convert(Matrix, train_x))
+
+    		and = children(pc)[1]
+    		og_lits = collect(Set{Lit}(variables(and.vtree))) # All literals
+
+	    	prime_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[1].vtree)])
+    		sub_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[2].vtree)])
+
+    		prime_lits = sort(collect(Set{Lit}(prime_lits)))
+    		sub_lits = sort(collect(Set{Lit}(sub_lits)))
+    		prime_sub_lits = sort([prime_lits..., sub_lits...])
+
+
+		# The first gpu kernel is slower, so to compensate for that
+    		t = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=1, use_gpu=true, k=1, α=1.0)
+
+		t0 = Base.time_ns()
+    		mi_cpu = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=1, use_gpu=false, k=1, α=1.0)
+		t1 = Base.time_ns()
+		mi_cpu = (t1 - t0)/1e9
+		println(mi_cpu)
+		
+		t0 = Base.time_ns()
+    		mi20_cpu = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=20, use_gpu=false, k=1, α=1.0)
+		t1 = Base.time_ns()
+		mi20_cpu = (t1 - t0)/1e9
+		println(mi20_cpu)
+		
+		t0 = Base.time_ns()
+    		mi_gpu = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=1, use_gpu=true, k=1, α=1.0)
+		t1 = Base.time_ns()
+		mi_gpu = (t1 - t0)/1e9
+		println(mi_gpu)
+	
+		t0 = Base.time_ns()
+    		mi20_gpu = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0)
+		t1 = Base.time_ns()
+		mi20_gpu = (t1 - t0)/1e9
+		println(mi20_gpu)
+
+		@assert isapprox(mi_cpu, mi_gpu; atol=1e-6) "cpu : $mi_cpu, gpu : $mi_gpu"
+
+    		push!(datasets, dataset)
+    		push!(mis_cpu, mi_cpu)
+    		push!(mi20s_cpu, mi20_cpu)
+    		push!(mis_gpu, mi_gpu)
+    		push!(mi20s_gpu, mi20_gpu)
+    	end
+
+	summary_dict = Dict()
+	summary_dict["dataset"] = datasets
+	summary_dict["mis_cpu"] = mis_cpu
+	summary_dict["mi20s_cpu"] = mi20s_cpu
+	summary_dict["mis_gpu"] = mis_gpu
+	summary_dict["mi20s_gpu"] = mi20s_gpu
+	
+	header = ["dataset", "mis_cpu", "mi20s_cpu", "mis_gpu", "mi20s_gpu"]
+	save_as_csv(summary_dict; filename=joinpath(save_dir, "pmi_runtimes.csv"), header=header)
+	println("Saved Runtimes")
 end
