@@ -19,7 +19,7 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
 
         mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=false, k=1, α=1.0)
    	# println("Verbose : $mi") 
-        if mi < thresh
+        if mi < thresh && sum(bm) > 0
             return -1.0 * sum(bm)
         end
         return 1.0
@@ -71,8 +71,12 @@ function initial_population(method::M, individual::BitArray) where {M<:Evolution
     population = []
     s = Int(floor(size(individual)[1] / Evolutionary.population_size(method)))
     for i in 1:Evolutionary.population_size(method)
-        bm = BitArray(zeros(size(individual)))
-        bm[(i - 1) * s + 1] = 1
+    	n = size(individual)
+        d = Binomial(1, 0.5)
+        bm = BitArray(rand(d, n))
+	# This is really sparse
+        # bm = BitArray(zeros(size(individual)))
+        # bm[(i - 1) * s + 1] = 1
         push!(population, bm)
     end
     return population

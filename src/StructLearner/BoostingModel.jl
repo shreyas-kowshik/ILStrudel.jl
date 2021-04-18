@@ -72,6 +72,7 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=7, pseudocount=1.0)
     # Initialise
     num_components = length(m.components)
     # component_weights = ones(num_components) ./ num_components
+    component_weights = weights
     if isnothing(weights)
         component_weights = initial_weights(train_x, num_components) # Use library function
     end
