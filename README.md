@@ -5,4 +5,6 @@ Independence-Based Learning of Structured-Decomposable Circuits.
 
 ### TODO :
 
-Make Training setup of ensembles lightweight by storing only log-likelihoods
+Investigate GA.jl. The pmi values during mining and afterwards are different.
+Look for a way to normalize and select thresholds well.
+Investigate EM implementation for bug checking.

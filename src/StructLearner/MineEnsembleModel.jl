@@ -21,8 +21,23 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
                                     pmi_thresh=pmi_thresh)
     end
 
+    # For pMI computation #
+    dmat = BitArray(convert(Matrix, train_x))
+
+    and = children(pc)[1]
+    og_lits = collect(Set{Lit}(variables(and.vtree))) # All literals
+
+    prime_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[1].vtree)])
+    sub_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[2].vtree)])
+
+    prime_lits = sort(collect(Set{Lit}(prime_lits)))
+    sub_lits = sort(collect(Set{Lit}(sub_lits)))
+    prime_sub_lits = sort([prime_lits..., sub_lits...])
+    ##################
+
     circuits = []
     final_bitmasks = []
+    final_pmis = []
     for bitmask in bitmasks
         println("Size of Bitmask : $(sum(bitmask))")
         println("$(size(bitmask))")
@@ -31,6 +46,12 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
             continue
         end
         push!(final_bitmasks, bitmask)
+
+	# Comput pMI
+	println("Threshold pMI : $pmi_thresh")
+	pMI = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0) 
+	println("Bitmask pMI : $pMI")
+	push!(final_pmis, pMI)
 
         bitmask = BitArray(bitmask)
         pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
@@ -46,7 +67,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     bitmasks = copy(final_bitmasks)
 
     if return_bitmasks
-        return circuits, bitmasks
+        return circuits, bitmasks, final_pmis
     else
         circuits
     end

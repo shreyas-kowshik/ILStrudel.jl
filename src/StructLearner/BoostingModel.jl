@@ -68,7 +68,7 @@ function mined_initial_weights(train_x, num_components)
 
 end
 
-function EM(m::Mixture, train_x; weights=nothing, num_iters=7, pseudocount=1.0)
+function EM(m::Mixture, train_x; weights=nothing, num_iters=15, pseudocount=1.0)
     # Initialise
     num_components = length(m.components)
     # component_weights = ones(num_components) ./ num_components
@@ -77,6 +77,7 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=7, pseudocount=1.0)
         component_weights = initial_weights(train_x, num_components) # Use library function
     end
     component_weights = reshape(component_weights, 1, length(component_weights))
+    data_weights = nothing
 
     println("Initial Component Weights : $component_weights")
 
@@ -106,9 +107,10 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=7, pseudocount=1.0)
         component_weights = normalize(component_weights, 1.0)
         @assert abs(1.0 - sum(component_weights)) < 1e-6 "Parameters do not sum to 1 : $(sum(component_weights))"
 
+	data_weights = exp.(copy(log_p_z_given_x))
 	println("Pseudocount : $pseudocount")
         for i in 1:num_components
-            weighted_train_x = add_sample_weights(copy(train_x), log_p_z_given_x[:, i])
+            weighted_train_x = add_sample_weights(copy(train_x), normalize(exp.(log_p_z_given_x[:, i]), size(data_weights)[1]))
 	    pc = m.components[i]
             estimate_parameters(pc, weighted_train_x; pseudocount=pseudocount)
 	    m.components[i] = pc
@@ -116,7 +118,7 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=7, pseudocount=1.0)
     end
 
     m.weights = copy(component_weights)
-    return m
+    return m, data_weights
 end
 
 # DEBUG #

@@ -74,9 +74,9 @@ function initial_population(method::M, individual::BitArray) where {M<:Evolution
     	n = size(individual)
         d = Binomial(1, 0.5)
         bm = BitArray(rand(d, n))
-	# This is really sparse
-        # bm = BitArray(zeros(size(individual)))
-        # bm[(i - 1) * s + 1] = 1
+	# This is really sparse, TODO : May Remove below two lines as well
+        bm = BitArray(zeros(size(individual)))
+        bm[(i - 1) * s + 1] = 1
         push!(population, bm)
     end
     return population

@@ -214,7 +214,7 @@ function mine_em_model(dataset_name, config_dict;
 
     println("PMI THRESH USED : $pmi_thresh")
 
-    pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
+    pcs, bitmasks, pmis = learn_mine_ensemble(train_x, valid_x, test_x;
         mine_iterations=mine_iterations,
         population_size=population_size,
         num_mine_samples=num_mine_samples,
@@ -248,7 +248,7 @@ function mine_em_model(dataset_name, config_dict;
     _, vtree = learn_chow_liu_tree_circuit(train_x)
 
     weights = [sum(bm) / length(bm) for bm in bitmasks]
-    mixture = EM(mixture, train_x; weights=weights, pseudocount=pseudocount)
+    mixture, data_weights = EM(mixture, train_x; weights=weights, pseudocount=pseudocount)
     train_ll = mean(mixture_log_likelihood_per_instance(mixture, train_x))
     valid_ll = mean(mixture_log_likelihood_per_instance(mixture, valid_x))
     test_ll = mean(mixture_log_likelihood_per_instance(mixture, test_x))
@@ -259,6 +259,8 @@ function mine_em_model(dataset_name, config_dict;
     config_dict["valid_ll"] = valid_ll
     config_dict["test_ll"] = test_ll
     config_dict["params"] = num_params
+    config_dict["pmis"] = pmis
+    config_dict["em_data_weights"] = data_weights
 
     save_path = joinpath(LOG_DIR, dataset_name)
     if !isdir(save_path)
@@ -280,7 +282,9 @@ function mine_em_model(dataset_name, config_dict;
 	save_vtree(joinpath(weights_path, "vt_$i.vtree"), pc.vtree)
     end
 
-    println(config_dict)
+    println(train_ll)
+    println(valid_ll)
+    println("Test LL : $test_ll")
 end
 
 function boosting_model(dataset_name, config_dict; maxiter=100, pseudocount=1.0, num_boosting_components=5,
