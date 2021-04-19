@@ -25,9 +25,9 @@ end
 function normalize(w, N)
     # w = w .- maximum(w)
     # println("Normalize : Sum W : $(sum(w))")
-    println("Normalize : $(sum(w))")
-    println("Maximum : $(maximum(w))")
-    println("Minimum : $(minimum(w))")
+    # println("Normalize : $(sum(w))")
+    # println("Maximum : $(maximum(w))")
+    # println("Minimum : $(minimum(w))")
     w = w ./ sum(w)
     w = w .* N
     w

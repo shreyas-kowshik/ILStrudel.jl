@@ -47,11 +47,11 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
         end
         push!(final_bitmasks, bitmask)
 
-	# Comput pMI
-	println("Threshold pMI : $pmi_thresh")
-	pMI = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0) 
-	println("Bitmask pMI : $pMI")
-	push!(final_pmis, pMI)
+        # Comput pMI
+        println("Threshold pMI : $pmi_thresh")
+        pMI = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0) 
+        println("Bitmask pMI : $pMI")
+        push!(final_pmis, pMI)
 
         bitmask = BitArray(bitmask)
         pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
