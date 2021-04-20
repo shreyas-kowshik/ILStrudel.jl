@@ -17,7 +17,7 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
             bm_mi[dict[instances[i, :]]] .= 1
         end
 
-        mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0)
+        mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0)
 
         if mi < thresh && sum(bm) > 0
             println("Solution Found : $mi")
@@ -171,7 +171,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         end
         push!(bitmasks, bm_train_x)
 
-        mi = bootstrap_mutual_information(dmat[bm_train_x, :], prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0)
+        mi = bootstrap_mutual_information(dmat[bm_train_x, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0)
         println("Bitmask $mi, pmi_thresh : $pmi_thresh")
     end
 

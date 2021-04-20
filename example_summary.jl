@@ -142,7 +142,7 @@ function print_stats(log_path)
                     end
 
                     write(file, joinpath(dset_path, log))
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                     d = load(joinpath(dset_path, log))["config_dict"]
                     b = load(joinpath(dset_path, "bitmasks.jld"))["bitmasks"]
                     b = hcat(b...)
@@ -150,19 +150,19 @@ function print_stats(log_path)
                     
 
                     write(file, "Sum_x p_z_given_x : ")
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                     write(file, string(sum(em_data_weights, dims=1)))
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                     write(file, "Sum_x bitmasks : ")
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                     write(file, string(sum(b, dims=1)))
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                     write(file, "Sum_x p_z_given_x .* bitmasks : ")
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                     write(file, string(sum(em_data_weights .* b, dims=1)))
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                     write(file, "-------------------------------")
-		    write(file, "\n\n\n")
+		            write(file, "\n\n\n")
                 end
             end
         end
