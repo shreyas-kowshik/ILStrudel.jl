@@ -29,14 +29,13 @@ function create_summary(log_path, header)
             best_size = 1
             
             for log in readdir(dset_path)
-	    	if !occursin(".jld", log)
-			continue
-		end
+                if !occursin(".jld", log)
+                    continue
+                end
 
-		if occursin("bitmask", log)
-			continue
-		end
-
+                if occursin("bitmask", log)
+                    continue
+                end
 
                 println(joinpath(dset_path, log))
                 d = load(joinpath(dset_path, log))["config_dict"]
@@ -59,7 +58,7 @@ function create_summary(log_path, header)
     summary_dict["test_ll"] = test_lls
     summary_dict["size"] = sizes
 
-    save_as_csv(summary_dict; filename=joinpath(log_path, "../summary.csv"), header=header)
+    save_as_csv(summary_dict; filename=joinpath(log_path, "summary.csv"), header=header)
 end
 
 function jld_summary(log_path)
@@ -69,10 +68,10 @@ function jld_summary(log_path)
 
     function chk_type(d, k)
     	if isa(d[k], Number) || isa(d[k], String)
-		return true
-	else
-		return false
-	end
+		    return true
+	    else
+		    return false
+	    end
     end
     
     for dset in dsets
@@ -80,12 +79,12 @@ function jld_summary(log_path)
 
         for log in readdir(dset_path)
 	    	if !occursin(".jld", log)
-			continue
-		end
+			    continue
+		    end
 
-		if occursin("bitmask", log)
-			continue
-		end
+            if occursin("bitmask", log)
+                continue
+            end
 
             println(joinpath(dset_path, log))
             d = load(joinpath(dset_path, log))["config_dict"]
@@ -100,9 +99,9 @@ function jld_summary(log_path)
             end
 
             for k in keys(d)
-	    	if !chk_type(d, k)
-			continue
-		end
+	    	    if !chk_type(d, k)
+			        continue
+		        end
 
                 if isnothing(d[k])
                     push!(summary_dict[k], "NULL")
@@ -113,7 +112,49 @@ function jld_summary(log_path)
         end
     end
 
-    save_as_csv(summary_dict; filename=joinpath(log_path, "../runs.csv"))
+    save_as_csv(summary_dict; filename=joinpath(log_path, "runs.csv"))
+end
+
+"""
+Prints some statistics for analysis in a `.txt` file for the run
+"""
+function print_stats(log_path)
+    summary_dict = Dict()
+    dsets = readdir(log_path)
+    test_lls = []
+    sizes = []
+
+    open(joinpath(log_path, "analysis.txt"), "w") do file
+        for dset in DSETS
+            if dset in dsets
+                dset_path = joinpath(log_path, dset)
+                for log in readdir(dset_path)
+                    if !occursin(".jld", log)
+                        continue
+                    end
+
+                    if occursin("bitmask", log)
+                        continue
+                    end
+
+                    write(file, joinpath(dset_path, log))
+                    d = load(joinpath(dset_path, log))["config_dict"]
+                    b = load(joinpath(dset_path, "bitmasks.jld"))["bitmasks"]
+                    b = hcat(b...)
+                    em_data_weights = d["em_data_weights"]
+                    
+
+                    write(file, "Sum_x p_z_given_x : ")
+                    write(file, sum(em_data_weights, dims=1))
+                    write(file, "Sum_x bitmasks : ")
+                    write(file, sum(b, dims=1))
+                    write(file, "Sum_x p_z_given_x .* bitmasks : ")
+                    write(file, sum(em_data_weights .* b, dims=1))
+                    write(file, "-------------------------------")
+                end
+            end
+        end
+    end
 end
 
 function parse_commandline()
@@ -135,3 +176,4 @@ header = ["dataset", "test_ll", "size"]
 create_summary(parsed_args["logdir"], header)
 
 jld_summary(parsed_args["logdir"])
+print_stats(parsed_args["logdir"])
