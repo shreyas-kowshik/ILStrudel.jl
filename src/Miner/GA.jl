@@ -22,6 +22,8 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
         if mi < thresh && sum(bm) > 0
             println("Solution Found : $mi")
             println("Bitmask Initial : $(bm_mi[1:10])")
+	    println("Bitmask Size : $(sum(bm_mi))")
+	    println("Bitmask Size Unique : $(sum(bm))")
             println("--------------------------------")
             return -1.0 * sum(bm)
         end
@@ -134,7 +136,8 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
 
     seeds = []
     for i in 1:num_samples
-        push!(seeds, i * 100 + 47)
+        # push!(seeds, i * 100 + 47)
+	push!(seeds, 47); # Why not keep it the same?
     end
 
     bitmasks = []
@@ -169,7 +172,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         push!(bitmasks, bm_train_x)
 
         mi = bootstrap_mutual_information(dmat[bm_train_x, :], prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0)
-        @assert mi < pmi_thresh "Bitmask $mi not satisfying $pmi_thresh pmi_thresh"
+        println("Bitmask $mi, pmi_thresh : $pmi_thresh")
     end
 
     # Assign remaining values to a bitmask

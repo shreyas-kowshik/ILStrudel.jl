@@ -29,6 +29,15 @@ function create_summary(log_path, header)
             best_size = 1
             
             for log in readdir(dset_path)
+	    	if !occursin(".jld", log)
+			continue
+		end
+
+		if occursin("bitmask", log)
+			continue
+		end
+
+
                 println(joinpath(dset_path, log))
                 d = load(joinpath(dset_path, log))["config_dict"]
                 test_ll = d["test_ll"]
@@ -58,21 +67,43 @@ function jld_summary(log_path)
     dsets = readdir(log_path)
     init_keys = false
 
+    function chk_type(d, k)
+    	if isa(d[k], Number) || isa(d[k], String)
+		return true
+	else
+		return false
+	end
+    end
+    
     for dset in dsets
         dset_path = joinpath(log_path, dset)
 
         for log in readdir(dset_path)
+	    	if !occursin(".jld", log)
+			continue
+		end
+
+		if occursin("bitmask", log)
+			continue
+		end
+
             println(joinpath(dset_path, log))
             d = load(joinpath(dset_path, log))["config_dict"]
 
             if !init_keys
                 for k in keys(d)
-                    summary_dict[k] = []
+		    if chk_type(d, k)
+	                    summary_dict[k] = []
+		    end
                 end
                 init_keys = true
             end
 
             for k in keys(d)
+	    	if !chk_type(d, k)
+			continue
+		end
+
                 if isnothing(d[k])
                     push!(summary_dict[k], "NULL")
                 else

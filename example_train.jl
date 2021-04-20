@@ -261,6 +261,7 @@ function mine_em_model(dataset_name, config_dict;
     config_dict["params"] = num_params
     config_dict["pmis"] = pmis
     config_dict["em_data_weights"] = data_weights
+    config_dict["pmi_thresh"] = pmi_thresh
 
     save_path = joinpath(LOG_DIR, dataset_name)
     if !isdir(save_path)

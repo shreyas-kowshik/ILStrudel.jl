@@ -68,7 +68,7 @@ function mined_initial_weights(train_x, num_components)
 
 end
 
-function EM(m::Mixture, train_x; weights=nothing, num_iters=15, pseudocount=1.0)
+function EM(m::Mixture, train_x; weights=nothing, num_iters=50, pseudocount=1.0)
     # Initialise
     num_components = length(m.components)
     # component_weights = ones(num_components) ./ num_components
