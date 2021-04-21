@@ -192,6 +192,7 @@ function mine_em_model(dataset_name, config_dict;
     end
 
     if !isnothing(load_bitmask_path)
+        println("Loading Bitmasks from path : $load_bitmask_path")
         bitmasks = load(load_bitmask_path)["bitmasks"]
         println("Loaded Bitmasks!")
     else
