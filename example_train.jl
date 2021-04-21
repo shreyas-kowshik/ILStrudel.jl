@@ -208,7 +208,7 @@ function mine_em_model(dataset_name, config_dict;
     # Get pmi_thresh from files
     # Mean of values chosen
     pmi_stats_path = joinpath("bin/pmi_stats/", dataset_name)
-    pmi_stats = collect(values(load(joinpath(pmi_stats_path, "mi20s.jld"))))[1]
+    pmi_stats = collect(values(load(joinpath(pmi_stats_path, string("mi", config_dict["num_mi_bags"], "s.jld")))))[1]
     # Set mean of the statistics
     pmi_thresh = mean(pmi_stats)
 

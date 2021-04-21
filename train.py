@@ -14,8 +14,8 @@ datasets = datasets[min_len:max_len]
 
 for (i,dataset) in enumerate(datasets):
     sess = dataset
-    run_name = "mine_em_bagging_2"
-    command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 1000 --pmi_thresh 0.03 --population_size 100 --num_mine_samples 10 --mine_iterations 3'".format(sess, dataset, run_name)
+    run_name = "mine_em_bagging_3"
+    command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 1000 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 10 --mine_iterations 3 --num_mi_bags 50'".format(sess, dataset, run_name)
     args = shlex.split(command)
     subprocess.Popen(args)
 
