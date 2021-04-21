@@ -219,7 +219,7 @@ function mine_em_model(dataset_name, config_dict;
         mine_iterations=mine_iterations,
         population_size=population_size,
         num_mine_samples=num_mine_samples,
-        pick_edge=pick_edge, pick_var=pick_var, depth=3,
+        pick_edge=pick_edge, pick_var=pick_var, depth=config_dict["depth"],
         pseudocount=pseudocount,
         sanity_check=sanity_check,
         maxiter=maxiter,
@@ -422,6 +422,12 @@ function parse_commandline()
             help = ""
             arg_type = Int
             default = 200
+            required = false
+
+        "--depth"
+            help = ""
+            arg_type = Int
+            default = 1
             required = false
               
         "--pmi_thresh"

@@ -55,7 +55,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
 
         bitmask = BitArray(bitmask)
         pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
-        pick_edge=pick_edge, pick_var=pick_var, depth=1, 
+        pick_edge=pick_edge, pick_var=pick_var, depth=depth, 
         pseudocount=pseudocount,
         sanity_check=true,
         maxiter=maxiter,
