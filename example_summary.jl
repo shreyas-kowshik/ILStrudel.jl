@@ -72,6 +72,7 @@ function jld_summary(log_path)
 	    else
 		    return false
 	    end
+	    return true
     end
     
     for dset in dsets
@@ -103,7 +104,8 @@ function jld_summary(log_path)
             end
 
             for k in keys(d)
-	    	    if !chk_type(d, k)
+	    	try
+	    	    if !(chk_type(d, k))
 			        continue
 		        end
 
@@ -112,6 +114,10 @@ function jld_summary(log_path)
                 else
                     push!(summary_dict[k], d[k])
                 end
+		catch
+		println("Skipping $k in summary...")
+		continue
+		end
             end
         end
     end
@@ -141,9 +147,17 @@ function print_stats(log_path)
                         continue
                     end
 
+		    # Load pmi stats
+
                     write(file, joinpath(dset_path, log))
 		            write(file, "\n\n\n")
                     d = load(joinpath(dset_path, log))["config_dict"]
+		    
+		    mi_fname = string("mi", d["num_mi_bags"], "s")
+		    pmi_stats = load(joinpath("bin", "pmi_stats", dset, string(mi_fname, ".jld")))[mi_fname]
+		    mu = mean(pmi_stats)
+		    sigma = std(pmi_stats)
+		    
                     b = load(joinpath(dset_path, "bitmasks.jld"))["bitmasks"]
                     b = hcat(b...)
                     em_data_weights = d["em_data_weights"]
@@ -161,6 +175,29 @@ function print_stats(log_path)
 		            write(file, "\n\n\n")
                     write(file, string(sum(em_data_weights .* b, dims=1)))
 		            write(file, "\n\n\n")
+
+		    write(file, "pmi threshold\n\n\n")
+		    write(file, string(d["pmi_thresh"]))
+		    write(file, "\n\n\n")
+		    write(file, "pmis\n\n\n")
+		    write(file, string(d["pmis"]))
+		    write(file, "\n\n\n")
+		    
+		    write(file, "num_mi_bags : ")
+		    write(file, string(d["num_mi_bags"]))
+		    write(file, "\n")
+		    write(file, "mu : ")
+		    write(file, string(mu))
+		    write(file, "\n")
+		    write(file, "sigma : ")
+		    write(file, string(sigma))
+		    write(file, "\n")
+		    
+		    write(file, "\n\n\n")
+		    normalized_pmis = (d["pmis"] .- mu) ./ sigma
+		    write(file, string(normalized_pmis))
+		    write(file, "\n\n\n")
+		    
                     write(file, "-------------------------------")
 		            write(file, "\n\n\n")
                 end
