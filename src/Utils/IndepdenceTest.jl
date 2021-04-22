@@ -46,7 +46,7 @@ function kway_MI_cpu(dmat, vars_x, vars_y; k=2, α=1.0)
                 d = dmat[:, Var.(primes)]
                 d[:, 2] = .!(d[:, 2])
                 vec_x1nx2 = mapreduce(x->x, &, d, dims=[2])
-                push!(sub_mat_vals, vec_x1nx2)
+                push!(prime_mat_vals, vec_x1nx2)
             end
 
             d = dmat[:, Var.(primes)]
@@ -81,9 +81,10 @@ function kway_MI_cpu(dmat, vars_x, vars_y; k=2, α=1.0)
                     psubs = sum(sval)/N
 
                     pMI_val += (pcomb * (log((pcomb / ((pprimes * psubs) + 1e-6)) + 1e-6)))
-		    cnt += 1
                 end
             end
+
+            cnt += 1
 
             ######################
         end

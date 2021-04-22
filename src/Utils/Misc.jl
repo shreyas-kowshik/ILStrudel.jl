@@ -206,3 +206,77 @@ function plot_instance_frequency()
         savefig(joinpath(path, "freqs_distribution.png"))
 	end
 end
+
+function generate_two_way_pmi_bagging_stats(;num_iters=300, bins=50)
+	println("Geneating Two Way pMI Statistics")
+	for dataset in twenty_dataset_names[1:end-1]
+		println(dataset)
+		train_x, _, _ = twenty_datasets(dataset)
+		pc, vtree = learn_chow_liu_tree_circuit(train_x)
+
+		dmat = BitArray(convert(Matrix, train_x))
+
+		and = children(pc)[1]
+		og_lits = collect(Set{Lit}(variables(and.vtree))) # All literals
+
+		prime_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[1].vtree)])
+		sub_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[2].vtree)])
+
+		prime_lits = sort(collect(Set{Lit}(prime_lits)))
+		sub_lits = sort(collect(Set{Lit}(sub_lits)))
+		prime_sub_lits = sort([prime_lits..., sub_lits...])
+
+		n = size(dmat)[1]
+		p= 0.5
+		d = Binomial(1, p)
+
+		mis = []
+		mi20s = []
+		mi50s = []
+
+		two_mis = []
+		two_mi20s = []
+		two_mi50s = []
+		for i in 1:num_iters
+			println("Iteration : $i")
+			bm = BitArray(rand(d, n))
+			mi = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=false, k=1, α=1.0)
+			mi20 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=20, use_gpu=false, k=1, α=1.0)
+			mi50 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=50, use_gpu=false, k=1, α=1.0)
+
+			two_mi = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=false, k=2, α=1.0)
+			two_mi20 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=20, use_gpu=false, k=2, α=1.0)
+			two_mi50 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=50, use_gpu=false, k=2, α=1.0)
+
+			push!(mis, mi)
+			push!(mi20s, mi20)
+			push!(mi50s, mi50)
+
+			push!(two_mis, two_mi)
+			push!(two_mi20s, two_mi20)
+			push!(two_mi50s, two_mi50)
+		end
+
+		if !isdir(joinpath("bin/two_way_pmi_stats", dataset))
+			mkpath(joinpath("bin/two_way_pmi_stats", dataset))
+		end
+		
+		save_file = joinpath("bin/two_way_pmi_stats", dataset, "two_mis.jld")
+		save(save_file, "mis", two_mis)
+		save_file = joinpath("bin/two_way_pmi_stats", dataset, "two_mi20s.jld")
+		save(save_file, "mi20s", two_mi20s)
+		save_file = joinpath("bin/two_way_pmi_stats", dataset, "two_mi50s.jld")
+		save(save_file, "mi50s", two_mi50s)
+
+		fig, ax = subplots(3)
+        fig.suptitle(dataset)
+		ax[1].hist(mis, bins=bins)
+		ax[1].hist(two_mis, bins=bins)
+		ax[2].hist(mi20s, bins=bins)
+		ax[2].hist(two_mi20s, bins=bins)
+		ax[3].hist(mi50s, bins=bins)
+		ax[3].hist(two_mi50s, bins=bins)
+        savefig(joinpath(joinpath("bin/two_way_pmi_stats", dataset), "stats.png"))
+	end
+
+end
