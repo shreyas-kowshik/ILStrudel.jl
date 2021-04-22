@@ -200,6 +200,8 @@ function plot_instance_frequency()
 		end
 
 		path = joinpath("bin", "freqs", dataset)
+		save(joinpath(path, "freqs.jld"), "freqs", freq_arr)
+
 		fig, ax = subplots(1)
         fig.suptitle(dataset)
         ax.bar(idx, freq_arr)
