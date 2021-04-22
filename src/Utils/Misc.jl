@@ -288,6 +288,10 @@ function plot_instance_frequency()
 		freq_arr = load(load_file)["freqs"]
 
 		println(dataset)
+		println(unique(freq_arr))
+		println(sort(freq_arr, rev=true)[1:15])
+		println("Maximum : $(maximum(freq_arr))")
+		println("Minimum : $(minimum(freq_arr))")
 		println("0.25 quantile : $(quantile!(freq_arr, 0.25))")
 		println("0.50 quantile : $(quantile!(freq_arr, 0.50))")
 		println("0.75 quantile : $(quantile!(freq_arr, 0.75))")
