@@ -215,6 +215,10 @@ function mine_em_model(dataset_name, config_dict;
 
     println("PMI THRESH USED : $pmi_thresh")
 
+    # Get Size Threshold
+    N = size(train_x)[1]
+    size_thresh = floor(Int, N / num_mine_samples)
+
     pcs, bitmasks, pmis = learn_mine_ensemble(train_x, valid_x, test_x;
         mine_iterations=mine_iterations,
         population_size=population_size,
@@ -227,6 +231,7 @@ function mine_em_model(dataset_name, config_dict;
         return_vtree=return_vtree,
         return_bitmasks=return_bitmasks,
         pmi_thresh=pmi_thresh,
+        size_thresh=size_thresh,
         bitmasks=bitmasks)
 
     # Save the bitmasks
@@ -263,6 +268,7 @@ function mine_em_model(dataset_name, config_dict;
     config_dict["pmis"] = pmis
     config_dict["em_data_weights"] = data_weights
     config_dict["pmi_thresh"] = pmi_thresh
+    config_dict["size_thresh"] = size_thresh
 
     save_path = joinpath(LOG_DIR, dataset_name)
     if !isdir(save_path)
