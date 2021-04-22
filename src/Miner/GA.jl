@@ -5,8 +5,10 @@ using Evolutionary
 Contains functions for mining Context-Specific-Independences at the root level using Genetic Algorithms
 """
 
+size_limit_set=false
+
 ### Fitness Function ###
-function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones(1)), thresh = 0.1)
+function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones(1)), thresh = 0.1, size_thresh=100)
     function score(bitmask::BitArray)
         bm = BitArray(zeros(size(uq)[1]))
         bm[idx] .= bitmask
@@ -19,12 +21,22 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
 
         mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0)
 
+        if size_limit_set
+            return 1.0
+        end
+
         if mi < thresh && sum(bm) > 0
             println("Solution Found : $mi")
             println("Bitmask Initial : $(bm_mi[1:10])")
 	    println("Bitmask Size : $(sum(bm_mi))")
 	    println("Bitmask Size Unique : $(sum(bm))")
             println("--------------------------------")
+
+            if sum(bm_mi) > size_thresh
+                println("Size Limit Crossed, Clamping for current iterations")
+                size_limit_set = true
+            end
+
             return -1.0 * sum(bm)
         end
         return 1.0
@@ -92,7 +104,7 @@ Mine CSIs at the root level
 """
 function mine_csi_root_ga(pc, vtree, train_x, num_samples;
                     iterations=10, mutation_prob=0.1, population_size=100,
-                    pmi_thresh=0.1)
+                    pmi_thresh=0.1, size_thresh=100)
 
     # N = size(train_x)[1]
     dmat = BitArray(convert(Matrix, train_x))
@@ -144,6 +156,9 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
     acc = BitArray(zeros(N))
 
     for seed in seeds
+        println("Resetting Size Limit")
+        size_limit_set = false
+
         Random.seed!(seed);
         idx = .!(acc)
         println(sum(idx))
@@ -155,7 +170,8 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         bm = BitArray(zeros(sum(idx)))
         bm[1] = 1
         
-        res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; idx=idx, thresh=pmi_thresh),
+        res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; 
+                                    idx=idx, thresh=pmi_thresh, size_thresh=size_thresh),
                                     bm, algo, opts)
         evomodel = Evolutionary.minimizer(res)
         bitmask = BitArray(zeros(N))

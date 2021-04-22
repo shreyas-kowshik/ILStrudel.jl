@@ -11,6 +11,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     return_vtree=false,
     return_bitmasks=false,
     pmi_thresh=0.1,
+    size_thresh=100,
     bitmasks=nothing)
 
     pc, vtree = learn_chow_liu_tree_circuit(train_x)
@@ -18,7 +19,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     if isnothing(bitmasks)
         bitmasks = mine_csi_root_ga(pc, vtree, train_x, num_mine_samples; 
                                     iterations=mine_iterations, population_size=population_size,
-                                    pmi_thresh=pmi_thresh)
+                                    pmi_thresh=pmi_thresh, size_thresh=size_thresh)
     end
 
     # For pMI computation #
