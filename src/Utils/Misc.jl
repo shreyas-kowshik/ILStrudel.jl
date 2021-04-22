@@ -171,7 +171,7 @@ function generate_pmi_runtime_stats()
 	println("Saved Runtimes")
 end
 
-function plot_instance_frequency()
+function generate_instance_frequency()
 	println("Plotting instance frequencies")
 	for dataset in twenty_dataset_names[1:end-1]
 		train_x, _, _ = twenty_datasets(dataset)
@@ -282,7 +282,7 @@ function generate_two_way_pmi_bagging_stats(;num_iters=300, bins=50)
 	end
 end
 
-function plot_two_way_stats()
+function plot_instance_frequency()
 	for dataset in twenty_dataset_names[1:end-1]
 		load_file = joinpath("bin/freqs", dataset, "freqs.jld")
 		freq_arr = load(load_file)["freqs"]
