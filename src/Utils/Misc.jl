@@ -170,3 +170,39 @@ function generate_pmi_runtime_stats()
 	save_as_csv(summary_dict; filename=joinpath(save_dir, "pmi_runtimes.csv"), header=header)
 	println("Saved Runtimes")
 end
+
+function plot_instance_frequency()
+	println("Plotting instance frequencies")
+	for dataset in twenty_dataset_names[1:end-1]
+		train_x, _, _ = twenty_datasets(dataset)
+		println(size(train_x))
+	    pc, vtree = learn_chow_liu_tree_circuit(train_x)
+
+		# Unique mapping
+		uq = unique(train_x)
+		dict = Dict()
+		for i in 1:size(uq)[1]
+			dict[uq[i, :]] = []
+		end
+	
+		for i in 1:size(train_x)[1]
+			push!(dict[train_x[i, :]], i)
+		end
+
+		freq_arr = []
+		for i in 1:size(uq)[1]
+			push!(freq_arr, length(dict[uq[i, :]]))
+		end
+		idx = [i for i in 1:length(freq_arr)]
+
+		if !isdir(joinpath("bin", "freqs", dataset))
+			mkpath(joinpath("bin", "freqs", dataset))
+		end
+
+		path = joinpath("bin", "freqs", dataset)
+		fig, ax = subplots(1)
+        fig.suptitle(dataset)
+        ax.bar(idx, freq_arr)
+        savefig(joinpath(path, "freqs_distribution.png"))
+	end
+end
