@@ -281,3 +281,15 @@ function generate_two_way_pmi_bagging_stats(;num_iters=300, bins=50)
         savefig(joinpath(joinpath("bin/two_way_pmi_stats", dataset), "bags_10_stats.png"))
 	end
 end
+
+function plot_two_way_stats()
+	for dataset in twenty_dataset_names[1:end-1]
+		load_file = joinpath("bin/freqs", dataset, "freqs.jld")
+		freq_arr = load(load_file)["freqs"]
+
+		println(dataset)
+		println("0.25 quantile : $(quantile!(freq_arr, 0.25))")
+		println("0.50 quantile : $(quantile!(freq_arr, 0.50))")
+		println("0.75 quantile : $(quantile!(freq_arr, 0.75))")
+	end
+end

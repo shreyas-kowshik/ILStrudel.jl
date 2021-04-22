@@ -22,7 +22,7 @@ clone_heuristic,
 
 # Miscellaneous
 generate_pmi_bagging_stats, generate_pmi_runtime_stats, plot_instance_frequency,
-generate_two_way_pmi_bagging_stats,
+generate_two_way_pmi_bagging_stats, plot_two_way_stats,
 
 # IndependenceTest
 _mutual_information, bootstrap_mutual_information # '_' since it conflicts with `ProbabilisticCircuits.jl`'s definition
