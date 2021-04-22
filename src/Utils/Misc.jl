@@ -280,5 +280,4 @@ function generate_two_way_pmi_bagging_stats(;num_iters=300, bins=50)
 		ax[3].hist(two_mi50s, bins=bins)
         savefig(joinpath(joinpath("bin/two_way_pmi_stats", dataset), "stats.png"))
 	end
-
 end
