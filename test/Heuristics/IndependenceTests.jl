@@ -13,7 +13,7 @@ using ILStrudel
 
     prime_vars = [1]
     sub_vars = [3]
-    pmi_gpu = _mutual_information(dmat, prime_vars, sub_vars)
+    pmi_gpu = _mutual_information(dmat, prime_vars, sub_vars; use_gpu=true)
     pmi_cpu = _mutual_information(dmat, prime_vars, sub_vars; use_gpu=false)
     two_way_mi = _mutual_information(dmat, prime_vars, sub_vars;use_gpu=false, k=1)
 
@@ -24,7 +24,7 @@ using ILStrudel
 
     prime_vars = [1, 5, 7, 9, 11]
     sub_vars = [2, 4, 6, 8, 10]
-    pmi_gpu = _mutual_information(dmat, prime_vars, sub_vars)
+    pmi_gpu = _mutual_information(dmat, prime_vars, sub_vars; use_gpu=true)
     pmi_cpu = _mutual_information(dmat, prime_vars, sub_vars; use_gpu=false)
     two_way_mi = _mutual_information(dmat, prime_vars, sub_vars;use_gpu=false, k=1)
 
@@ -35,7 +35,7 @@ using ILStrudel
 
     prime_vars = [2, 4, 6, 8, 10]
     sub_vars = [1, 5, 7, 9, 11]
-    pmi_gpu = _mutual_information(dmat, prime_vars, sub_vars)
+    pmi_gpu = _mutual_information(dmat, prime_vars, sub_vars; use_gpu=true)
     pmi_cpu = _mutual_information(dmat, prime_vars, sub_vars; use_gpu=false)
     two_way_mi = _mutual_information(dmat, prime_vars, sub_vars;use_gpu=false, k=1)
 
@@ -43,4 +43,8 @@ using ILStrudel
     println("pmi_cpu : $pmi_cpu")
     println("two_way_mi : $two_way_mi")
     println("---")
+end
+
+@testset "Mutual Information Values" begin
+    
 end
