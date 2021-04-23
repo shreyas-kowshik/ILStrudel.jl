@@ -218,6 +218,7 @@ function mine_em_model(dataset_name, config_dict;
     # Get Size Threshold
     N = size(train_x)[1]
     size_thresh = floor(Int, N / num_mine_samples)
+    println("SIZE THRESH USED : $size_thresh")
 
     pcs, bitmasks, pmis = learn_mine_ensemble(train_x, valid_x, test_x;
         mine_iterations=mine_iterations,

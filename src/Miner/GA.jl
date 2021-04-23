@@ -5,6 +5,7 @@ using Evolutionary
 Contains functions for mining Context-Specific-Independences at the root level using Genetic Algorithms
 """
 
+global size_limit_set
 size_limit_set=false
 
 ### Fitness Function ###
@@ -21,6 +22,7 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
 
         mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0)
 
+	global size_limit_set
         if size_limit_set
             return 1.0
         end
@@ -32,7 +34,7 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
 	    println("Bitmask Size Unique : $(sum(bm))")
             println("--------------------------------")
 
-            if sum(bm_mi) > size_thresh
+            if sum(bm_mi) > size_thresh && sum(bm) > 1 # At least 2 unique examples to keep
                 println("Size Limit Crossed, Clamping for current iterations")
                 size_limit_set = true
             end
@@ -155,6 +157,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
     bitmasks = []
     acc = BitArray(zeros(N))
 
+    global size_limit_set
     for seed in seeds
         println("Resetting Size Limit")
         size_limit_set = false
