@@ -4,6 +4,7 @@ Pkg.activate("/media/shreyas/Data/UCLA-Intern/ILStrudel/ILStrudel.jl")
 using Test
 using LogicCircuits
 using ProbabilisticCircuits
+using Distributions
 using ILStrudel
 
 @testset "Mutual-Information Calls" begin
@@ -71,10 +72,10 @@ end
         mis = []
         mi20s = []
         mi50s = []
-        for i in 1:10
+        for i in 1:100
             bm = BitArray(rand(d, n))
-            pmi_cpu = _mutual_information(dmat[bm, :], prime_vars, sub_vars; use_gpu=false)
-            pmi_gpu = _mutual_information(dmat[bm, :], prime_vars, sub_vars; use_gpu=true)
+            pmi_cpu = _mutual_information(dmat[bm, :], prime_lits, sub_lits; use_gpu=false)
+            pmi_gpu = _mutual_information(dmat[bm, :], prime_lits, sub_lits; use_gpu=true)
 
             @assert abs(pmi_cpu - pmi_gpu) < 1e-6 "Values on cpu : $pmi_cpu and gpu : $pmi_gpu not matching"
         end
