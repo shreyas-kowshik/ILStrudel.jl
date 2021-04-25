@@ -55,13 +55,23 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
         push!(final_pmis, pMI)
 
         bitmask = BitArray(bitmask)
-        pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
+        # pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
+        # pick_edge=pick_edge, pick_var=pick_var, depth=depth, 
+        # pseudocount=pseudocount,
+        # sanity_check=true,
+        # maxiter=maxiter,
+        # seed=nothing,
+        # return_vtree=false)
+
+        # CHANGE AFTER CHECKPOINT #
+        pc = learn_single_model(train_x[bitmask, :], valid_x, test_x, copy(pc), copy(vtree); 
         pick_edge=pick_edge, pick_var=pick_var, depth=depth, 
         pseudocount=pseudocount,
         sanity_check=true,
         maxiter=maxiter,
         seed=nothing,
         return_vtree=false)
+
 
         push!(circuits, pc)
     end
