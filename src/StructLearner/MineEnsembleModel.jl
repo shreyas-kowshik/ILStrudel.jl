@@ -64,7 +64,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
         # return_vtree=false)
 
         # CHANGE AFTER CHECKPOINT #
-        pc = learn_single_model(train_x[bitmask, :], valid_x, test_x, copy(pc), copy(vtree); 
+        pc1 = learn_single_model(train_x[bitmask, :], valid_x, test_x, deepcopy(pc), deepcopy(vtree); 
         pick_edge=pick_edge, pick_var=pick_var, depth=depth, 
         pseudocount=pseudocount,
         sanity_check=true,
@@ -73,7 +73,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
         return_vtree=false)
 
 
-        push!(circuits, pc)
+        push!(circuits, pc1)
     end
     bitmasks = copy(final_bitmasks)
 
