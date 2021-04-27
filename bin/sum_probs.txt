@@ -1,0 +1,244 @@
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+msnbc
+mine_em_2
+Logsumexp : -0.0493602542736955
+Sumexp : 0.9518381641583052
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+accidents
+mine_em_2
+Logsumexp : -12.31724759136556
+Sumexp : 4.473910984082243e-6
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+plants
+mine_em_2
+Logsumexp : -1.1223803678218398
+Sumexp : 0.32550405234127405
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+nltcs
+mine_em_2
+Logsumexp : -0.09493838232071372
+Sumexp : 0.9094289696444181
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+jester
+mine_em_2
+Logsumexp : -9.07188608335525
+Sumexp : 0.00011484971809802582
+
+
+7
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+baudio
+mine_em_2
+Logsumexp : -7.642702574694141
+Sumexp : 0.00047953073163468717
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+tretail
+mine_em_2
+Logsumexp : -0.5666779587648254
+Sumexp : 0.5674072615423342
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+book
+mine_em_2
+Logsumexp : -4.2304635446516
+Sumexp : 0.014545646428830536
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+tmovie
+mine_em_2
+Logsumexp : -3.0808663246248513
+Sumexp : 0.045919458254922836
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+kdd
+mine_em_2
+Logsumexp : -0.0355357644927935
+Sumexp : 0.9650882177221638
+
+
+e-8
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+c20ng
+mine_em_2
+Logsumexp : -15.436706541826213
+Sumexp : 1.976621569117176e-7
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+cr52
+mine_em_2
+Logsumexp : -9.958763973109011
+Sumexp : 4.731117780715033e-5
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+kosarek
+mine_em_2
+Logsumexp : -0.3628892790967626
+Sumexp : 0.6956634537210863
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+bbc
+mine_em_2
+Logsumexp : -99.5634625520893
+Sumexp : 5.756223052911052e-44
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+dna
+mine_em_2
+Logsumexp : -41.841774043786714
+Sumexp : 6.735167792746882e-19
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+msweb
+mine_em_2
+Logsumexp : -0.595342973514978
+Sumexp : 0.5513734269525623
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+ad
+mine_em_2
+Logsumexp : -1.6035591406674645
+Sumexp : 0.20117921713137754
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+msnbc
+mine_em_4
+Logsumexp : -0.0269619240324257
+Sumexp : 0.9733983039009932
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+bnetflix
+mine_em_4
+Logsumexp : -23.44175929709458
+Sumexp : 6.597407216345582e-11
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+jester
+mine_em_4
+Logsumexp : -7.155626319839769
+Sumexp : 0.000780460584316214
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+accidents
+mine_em_4
+Logsumexp : -12.265904273351635
+Sumexp : 4.709615569401596e-6
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+nltcs
+mine_em_4
+Logsumexp : -0.08345794497575754
+Sumexp : 0.9199297735266697
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+pumsb_star
+mine_em_4
+Logsumexp : -6.153567354096565
+Sumexp : 0.0021258844443378636
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+plants
+mine_em_4
+Logsumexp : -1.199259660521014
+Sumexp : 0.30141728044115407
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+dna
+mine_em_4
+Logsumexp : -46.139952761958256
+Sumexp : 9.155311392390163e-21
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+tretail
+mine_em_4
+Logsumexp : -0.5674407902165453
+Sumexp : 0.5669745904858211
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+book
+mine_em_4
+Logsumexp : -4.250456463327628
+Sumexp : 0.014257724295136153
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+tmovie
+mine_em_4
+Logsumexp : -4.017321154385577
+Sumexp : 0.018001122635614306
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+cwebkb
+mine_em_4
+Logsumexp : -16.268182882988555
+Sumexp : 8.606328983954871e-8
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+c20ng
+mine_em_4
+Logsumexp : -14.368592514700653
+Sumexp : 5.751744132796553e-7
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+cr52
+mine_em_4
+Logsumexp : -9.776692143132145
+Sumexp : 5.675923729491127e-5
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+kosarek
+mine_em_4
+Logsumexp : -0.36651511205625775
+Sumexp : 0.6931456615471757
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+msweb
+mine_em_4
+Logsumexp : -0.6264543437310546
+Sumexp : 0.534483540211553
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+ad
+mine_em_4
+Logsumexp : -1.5447283437793708
+Sumexp : 0.21336982659127882
+
+
