@@ -252,7 +252,7 @@ function mine_em_model(dataset_name, config_dict;
     end
 
     # Get initial vtree
-    _, vtree = learn_chow_liu_tree_circuit(train_x)
+    # _, vtree = learn_chow_liu_tree_circuit(train_x)
 
     weights = [sum(bm) / length(bm) for bm in bitmasks]
     mixture, data_weights = EM(mixture, train_x; weights=weights, pseudocount=pseudocount)

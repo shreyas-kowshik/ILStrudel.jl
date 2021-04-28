@@ -93,6 +93,7 @@ em_wts = config_dict["em_weights"]
 using LogicCircuits
 using ProbabilisticCircuits
 using ILStrudel
+using DataFrames
 
 pcs = []
 for i in 1:Int(length(readdir(pc_path))/2)
@@ -116,21 +117,31 @@ train_x, valid_x, test_x = twenty_datasets(parsed_args["dataset"]);
 # Build uq from exhaustive examples
 num_vars = Int(size(train_x)[2])
 instances = []
-for i in 1:(2^num_vars - 1)
- println(i)
+for i in 0:(2^num_vars - 1)
+ # println(i)
  bs = bitstring(i)[end-num_vars+1:end]
- bit_vals = [Int(b) fro b in bs]
- instance = BitArray(bit_vals)
- println(instance)
- println(size(instance))
+ bit_vals = [parse(Int64,string(b)) for b in bs]
+ instance = reshape(BitArray(bit_vals), 1, num_vars)
+ # println(instance)
+ # println(size(instance))
  push!(instances, instance)
 end
+println("Examples Generated...")
 uq = vcat(instances...)
-
+println("Size of instances : $(size(uq))")
+uq = DataFrame((BitArray(Base.convert(Matrix{Bool}, uq))))
+println("Size of instances : $(size(uq))")
 
 train_ll = ll(uq)
+
+for pc in pcs
+ println(pc)
+ println((exp(logsumexp(log_likelihood_per_instance(pc, uq)))))
+ println("---")
+end
+
 lse = logsumexp(train_ll)
-se = sum(exp.(train_ll))
+se = exp(lse)
 
 println(parsed_args["logdir"])
 println(parsed_args["dataset"])

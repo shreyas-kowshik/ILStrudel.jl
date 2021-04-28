@@ -1,0 +1,28 @@
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+nltcs
+mine_em_2
+Logsumexp : 4.218847493575595e-15
+Sumexp : 1.0000000000000042
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+nltcs
+mine_em_4
+Logsumexp : -2.886579864025407e-15
+Sumexp : 0.9999999999999971
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+msnbc
+mine_em_2
+Logsumexp : 6.661338147750939e-15
+Sumexp : 1.0000000000000067
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_size_thresh_vtree_share_1/
+msnbc
+mine_em_4
+Logsumexp : -1.021405182655144e-14
+Sumexp : 0.9999999999999898
+
+
