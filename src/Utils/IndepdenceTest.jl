@@ -1,6 +1,7 @@
 using Combinatorics
 using CUDA
 using LinearAlgebra
+using Random
 
 
 ############################### Mutual Information ###############################

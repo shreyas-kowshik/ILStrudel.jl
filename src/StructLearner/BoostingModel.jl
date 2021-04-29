@@ -77,9 +77,13 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=50, pseudocount=1.0)
         component_weights = initial_weights(train_x, num_components) # Use library function
     end
     component_weights = reshape(component_weights, 1, length(component_weights))
+
+    @assert abs(sum(component_weights) - 1.0) < 1e-6 "Probability neq one"
     data_weights = nothing
 
     println("Initial Component Weights : $component_weights")
+    m.weights = copy(component_weights)
+    data_weights = copy(component_weights)
 
     # prev_val = Inf
 
@@ -99,22 +103,36 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=50, pseudocount=1.0)
         # end
         # prev_val = ll_x
         println("Log_p_x : $(ll_x)")
+	ll_x2 = mean(mixture_log_likelihood_per_instance(m, train_x))
+	println("Log_p_x_2 : $(ll_x2)")
 
         log_p_z_given_x = log_p_x_and_z .- log_p_x
+
+	println("x_and_z : $(size(log_p_x_and_z))")
+	println("x : $(size(log_p_x))")
+	println("z_given_x : $(size(log_p_z_given_x))")
 
         # M Step
         component_weights = sum(exp.(log_p_z_given_x), dims=1)
         component_weights = normalize(component_weights, 1.0)
         @assert abs(1.0 - sum(component_weights)) < 1e-6 "Parameters do not sum to 1 : $(sum(component_weights))"
+	println("Size of N : $(size(train_x)[1])")
 
 	data_weights = exp.(copy(log_p_z_given_x))
 	println("Pseudocount : $pseudocount")
+	println("Size of data_weghts : $(size(data_weights))")
         for i in 1:num_components
-            weighted_train_x = add_sample_weights(copy(train_x), normalize(exp.(log_p_z_given_x[:, i]), size(data_weights)[1]))
+	    dw = normalize(exp.(log_p_z_given_x[:, i]), size(data_weights)[1])
+	    println("Sum dw : $(sum(dw))")
+	    println(dw[1:15])
+	    @assert abs(sum(dw) - size(data_weights)[1]) < 1e-6 "$sum(dw)"
+            weighted_train_x = add_sample_weights(copy(train_x), dw)
+	    @assert isweighted(weighted_train_x)==true "weighted_train_x not weighted"
 	    pc = m.components[i]
             estimate_parameters(pc, weighted_train_x; pseudocount=pseudocount)
 	    m.components[i] = pc
         end
+	m.weights = copy(component_weights)
     end
 
     m.weights = copy(component_weights)

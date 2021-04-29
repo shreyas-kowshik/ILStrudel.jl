@@ -26,3 +26,24 @@ Logsumexp : -1.021405182655144e-14
 Sumexp : 0.9999999999999898
 
 
+/space/shreyas-kowshik/runs/mine_em_bagging_sv_vtree_bag_1/
+nltcs
+mine_em_4
+Logsumexp : 0.34006787285929785
+Sumexp : 1.4050429516099059
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_sv_vtree_bag_1/
+nltcs
+mine_em_4
+Logsumexp : -3.552713678800501e-15
+Sumexp : 0.9999999999999964
+
+
+/space/shreyas-kowshik/runs/mine_em_bagging_sv_vtree_bag_1/
+msnbc
+mine_em_4
+Logsumexp : 1.0658141036401503e-14
+Sumexp : 1.0000000000000107
+
+

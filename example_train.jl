@@ -8,6 +8,7 @@ using ILStrudel
 using Statistics
 using ArgParse
 using JLD
+using Random
 
 """
 Circuit I/O template :
@@ -181,10 +182,13 @@ function mine_em_model(dataset_name, config_dict;
     load_bitmask_path=nothing,
     load_bitmasks=false)
 
+    Random.seed!(42)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
     pick_edge = "eFlow"
     pick_var = "vMI"
     config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
+    base_pc = nothing
+    base_vtree = nothing
 
     LOG_DIR = joinpath(BASE, "runs/", config_dict["run_name"])
     if !isdir(LOG_DIR)
@@ -195,8 +199,14 @@ function mine_em_model(dataset_name, config_dict;
         println("Loading Bitmasks from path : $load_bitmask_path")
         bitmasks = load(load_bitmask_path)["bitmasks"]
         println("Loaded Bitmasks!")
+	load_pc_path = joinpath(load_bitmask_path[1:end-12], "base_pc.psdd")
+	load_vtree_path = joinpath(load_bitmask_path[1:end-12], "base_vtree.vtree")
+	println("Loading Base PC from path : $load_pc_path")
+	base_pc, base_vtree = load_struct_prob_circuit(load_pc_path, load_vtree_path)
+	# base_vtree = base_pc.vtree
     else
         if load_bitmasks
+	    error("This part is not to be used now")
             save_path = joinpath(BITMASK_DIR, dataset_name)
             load_bitmask_path = joinpath(save_path, config_name)
             bitmasks = load(load_bitmask_path)["bitmasks"]
@@ -220,7 +230,7 @@ function mine_em_model(dataset_name, config_dict;
     size_thresh = floor(Int, N / num_mine_samples)
     println("SIZE THRESH USED : $size_thresh")
 
-    pcs, bitmasks, pmis = learn_mine_ensemble(train_x, valid_x, test_x;
+    pcs, bitmasks, pmis, base_pc, base_vtree = learn_mine_ensemble(train_x, valid_x, test_x;
         mine_iterations=mine_iterations,
         population_size=population_size,
         num_mine_samples=num_mine_samples,
@@ -233,21 +243,28 @@ function mine_em_model(dataset_name, config_dict;
         return_bitmasks=return_bitmasks,
         pmi_thresh=pmi_thresh,
         size_thresh=size_thresh,
-        bitmasks=bitmasks)
+        bitmasks=bitmasks,
+	pc=deepcopy(base_pc),
+	vtree=deepcopy(base_vtree))
 
     # Save the bitmasks
     bitmask_save_path = joinpath(LOG_DIR, dataset_name)
     if !isdir(bitmask_save_path)
         mkpath(bitmask_save_path)
     end
+
+    pc_save_path = joinpath(bitmask_save_path, "base_pc.psdd")
+    vtree_save_path = joinpath(bitmask_save_path, "base_vtree.vtree")
     bitmask_save_path = joinpath(bitmask_save_path, "bitmasks.jld")
+    save_circuit(pc_save_path, base_pc, base_pc.vtree)
+    save_vtree(vtree_save_path, base_pc.vtree)
     save(bitmask_save_path, "bitmasks", bitmasks)
 
     mixture = Mixture()
     for pc in pcs
         # TODO : Experiment with this
         # Re-estimate parameters over the entire dataset as a starting point
-        estimate_parameters(pc, train_x; pseudocount=pseudocount)
+        # estimate_parameters(pc, train_x; pseudocount=pseudocount)
         add_component(mixture, pc)
     end
 
@@ -255,6 +272,7 @@ function mine_em_model(dataset_name, config_dict;
     # _, vtree = learn_chow_liu_tree_circuit(train_x)
 
     weights = [sum(bm) / length(bm) for bm in bitmasks]
+    weights = weights ./ sum(weights)
     mixture, data_weights = EM(mixture, train_x; weights=weights, pseudocount=pseudocount)
     train_ll = mean(mixture_log_likelihood_per_instance(mixture, train_x))
     valid_ll = mean(mixture_log_likelihood_per_instance(mixture, valid_x))

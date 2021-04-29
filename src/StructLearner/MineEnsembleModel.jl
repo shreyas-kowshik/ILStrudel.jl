@@ -12,11 +12,19 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     return_bitmasks=false,
     pmi_thresh=0.1,
     size_thresh=100,
-    bitmasks=nothing)
+    bitmasks=nothing,
+    pc=nothing,
+    vtree=nothing)
 
-    pc, vtree = learn_chow_liu_tree_circuit(train_x)
+    if isnothing(pc) || isnothing(vtree)
+	@assert isnothing(bitmasks) "pc and vtree are nothing but bitmasks is not nothing"
+    end
 
     if isnothing(bitmasks)
+	@assert isnothing(pc) "bitmasks is nothing but not pc"
+	@assert isnothing(vtree) "bitmasks is nothing but not vtree"
+	
+    	pc, vtree = learn_chow_liu_tree_circuit(train_x)
         bitmasks = mine_csi_root_ga(pc, vtree, train_x, num_mine_samples; 
                                     iterations=mine_iterations, population_size=population_size,
                                     pmi_thresh=pmi_thresh, size_thresh=size_thresh)
@@ -39,6 +47,10 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     circuits = []
     final_bitmasks = []
     final_pmis = []
+
+    net_sum = sum([sum(b) for b in bitmasks])
+    @assert net_sum == size(train_x)[1] "$net_sum total bitmasks not summing to examples"
+
     for bitmask in bitmasks
         println("Size of Bitmask : $(sum(bitmask))")
         println("$(size(bitmask))")
@@ -78,7 +90,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
     bitmasks = copy(final_bitmasks)
 
     if return_bitmasks
-        return circuits, bitmasks, final_pmis
+        return circuits, bitmasks, final_pmis, pc, vtree
     else
         circuits
     end
