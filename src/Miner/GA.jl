@@ -140,20 +140,6 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
 
     N = size(uq)[1]
 
-    # Start Optimization #
-    opts = Evolutionary.Options(iterations=iterations, show_every=1, show_trace=true, store_trace=true,
-                           successive_f_tol=100000)
-    
-    algo = GA(
-    selection = rouletteinv,
-    mutation =  bm_mutation(type="rand_idx", p=mutation_prob),
-    crossover = bm_crossover(),
-    mutationRate = 0.95,
-    crossoverRate = 0.95,
-    populationSize = population_size,
-    ε = 0.2
-    )
-
     seeds = []
     for i in 1:num_samples
         # push!(seeds, i * 100 + 47)
@@ -179,7 +165,20 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         bm = BitArray(zeros(sum(idx)))
         bm[1] = 1
         
-	try
+    try
+            # Start Optimization #
+            opts = Evolutionary.Options(iterations=iterations, show_every=1, show_trace=true, store_trace=true,
+            successive_f_tol=100000)
+
+        algo = GA(
+        selection = rouletteinv,
+        mutation =  bm_mutation(type="rand_idx", p=mutation_prob),
+        crossover = bm_crossover(),
+        mutationRate = 0.95,
+        crossoverRate = 0.95,
+        populationSize = population_size,
+        ε = 0.2
+        )
 	        res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; 
         	                            idx=idx, thresh=pmi_thresh, size_thresh=size_thresh),
                 	                    bm, algo, opts)
