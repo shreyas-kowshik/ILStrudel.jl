@@ -199,11 +199,10 @@ function mine_em_model(dataset_name, config_dict;
         println("Loading Bitmasks from path : $load_bitmask_path")
         bitmasks = load(load_bitmask_path)["bitmasks"]
         println("Loaded Bitmasks!")
-	load_pc_path = joinpath(load_bitmask_path[1:end-12], "base_pc.psdd")
-	load_vtree_path = joinpath(load_bitmask_path[1:end-12], "base_vtree.vtree")
-	println("Loading Base PC from path : $load_pc_path")
-	base_pc, base_vtree = load_struct_prob_circuit(load_pc_path, load_vtree_path)
-	# base_vtree = base_pc.vtree
+        load_pc_path = joinpath(load_bitmask_path[1:end-12], "base_pc.psdd")
+        load_vtree_path = joinpath(load_bitmask_path[1:end-12], "base_vtree.vtree")
+        println("Loading Base PC from path : $load_pc_path")
+        base_pc, base_vtree = load_struct_prob_circuit(load_pc_path, load_vtree_path)
     else
         if load_bitmasks
 	    error("This part is not to be used now")
@@ -244,8 +243,8 @@ function mine_em_model(dataset_name, config_dict;
         pmi_thresh=pmi_thresh,
         size_thresh=size_thresh,
         bitmasks=bitmasks,
-	pc=deepcopy(base_pc),
-	vtree=deepcopy(base_vtree))
+        pc=deepcopy(base_pc),
+        vtree=deepcopy(base_vtree))
 
     # Save the bitmasks
     bitmask_save_path = joinpath(LOG_DIR, dataset_name)

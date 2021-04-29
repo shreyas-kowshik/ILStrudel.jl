@@ -50,6 +50,19 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
 
     net_sum = sum([sum(b) for b in bitmasks])
     @assert net_sum == size(train_x)[1] "$net_sum total bitmasks not summing to examples"
+    acc = BitArray(zeros(size(train_x))[1])
+    for b1 in bitmasks
+        acc .= acc .| b1
+        for b2 in bitmasks
+            if b1 .== b2
+                continue
+            else
+                b = b1 .& b2
+                @assert sum(b) == 0 "Bitmasks not disjoint"
+            end
+        end
+    end
+    @assert sum(acc) == size(train_x)[1] "Sum of bitmasks not adding up to number of exampels"
 
     for bitmask in bitmasks
         println("Size of Bitmask : $(sum(bitmask))")
@@ -67,15 +80,6 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
         push!(final_pmis, pMI)
 
         bitmask = BitArray(bitmask)
-        # pc = learn_single_model(train_x[bitmask, :], valid_x, test_x; 
-        # pick_edge=pick_edge, pick_var=pick_var, depth=depth, 
-        # pseudocount=pseudocount,
-        # sanity_check=true,
-        # maxiter=maxiter,
-        # seed=nothing,
-        # return_vtree=false)
-
-        # CHANGE AFTER CHECKPOINT #
         pc1 = learn_single_model(train_x[bitmask, :], valid_x, test_x, deepcopy(pc), deepcopy(vtree); 
         pick_edge=pick_edge, pick_var=pick_var, depth=depth, 
         pseudocount=pseudocount,

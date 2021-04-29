@@ -39,7 +39,10 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
             if sum(bm_mi) > size_thresh && sum(bm) > 1 # At least 2 unique examples to keep
                 println("Size Limit Crossed, Clamping for current iterations")
                 size_limit_set = true
-		bitmask_sol = copy(bm)
+        bitmask_sol = copy(bm)
+        
+        # Error here itself?
+        error("Going out of genetic algorithm")
             end
 
             return -1.0 * sum(bm)
@@ -176,17 +179,17 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         bm = BitArray(zeros(sum(idx)))
         bm[1] = 1
         
-	#try
+	try
 	        res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; 
         	                            idx=idx, thresh=pmi_thresh, size_thresh=size_thresh),
                 	                    bm, algo, opts)
 	        evomodel = Evolutionary.minimizer(res)
         	bitmask = BitArray(zeros(N))
 	        bitmask[idx] = evomodel
-	#catch
-	#	println("Caught Exception")
-	#end
-	# bitmask = copy(bitmask_sol)
+	catch
+		println("Caught Exception")
+	end
+	bitmask = copy(bitmask_sol)
         
         acc = acc .| bitmask
         
