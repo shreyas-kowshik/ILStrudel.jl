@@ -85,7 +85,7 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=50, pseudocount=1.0)
     m.weights = copy(component_weights)
     data_weights = copy(component_weights)
 
-    # prev_val = Inf
+    prev_val = nothing
 
     for iter in 1:num_iters
         println("EM Iter : $iter")
@@ -102,6 +102,12 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=50, pseudocount=1.0)
         #     break
         # end
         # prev_val = ll_x
+	if isnothing(prev_val)
+		prev_val = ll_x
+	else
+		@assert (ll_x - prev_val) >= 0 "EM increment issue"
+	end
+
         println("Log_p_x : $(ll_x)")
 	ll_x2 = mean(mixture_log_likelihood_per_instance(m, train_x))
 	println("Log_p_x_2 : $(ll_x2)")
@@ -113,7 +119,9 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=50, pseudocount=1.0)
 	println("z_given_x : $(size(log_p_z_given_x))")
 
         # M Step
-        component_weights = sum(exp.(log_p_z_given_x), dims=1)
+        component_weights = exp.(logsumexp(log_p_z_given_x, dims=1))
+        @assert abs(size(log_p_z_given_x)[1] - sum(component_weights)) < 1e-6 "Parameters do not sum to N : $(sum(component_weights))"
+
         component_weights = normalize(component_weights, 1.0)
         @assert abs(1.0 - sum(component_weights)) < 1e-6 "Parameters do not sum to 1 : $(sum(component_weights))"
 	println("Size of N : $(size(train_x)[1])")

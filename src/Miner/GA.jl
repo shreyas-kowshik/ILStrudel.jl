@@ -29,7 +29,7 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
             return 1.0
         end
 
-        if mi < thresh && sum(bm) > 0
+        if mi < thresh && sum(bm) > 0 # 1 # Do not include the case where only one unique example is present
             println("Solution Found : $mi")
             println("Bitmask Initial : $(bm_mi[1:10])")
 	    println("Bitmask Size : $(sum(bm_mi))")
@@ -111,7 +111,7 @@ end
 Mine CSIs at the root level
 """
 function mine_csi_root_ga(pc, vtree, train_x, num_samples;
-                    iterations=10, mutation_prob=0.1, population_size=100,
+                    iterations=10, mutation_prob=0.3, population_size=100,
                     pmi_thresh=0.1, size_thresh=100)
 
     # N = size(train_x)[1]
@@ -139,6 +139,20 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
     end
 
     N = size(uq)[1]
+            
+    	    # Start Optimization #
+            opts = Evolutionary.Options(iterations=iterations, show_every=1, show_trace=true, store_trace=true,
+            successive_f_tol=100000)
+
+        algo = GA(
+        selection = rouletteinv,
+        mutation =  bm_mutation(type="rand_idx", p=mutation_prob),
+        crossover = bm_crossover(),
+        mutationRate = 0.95,
+        crossoverRate = 0.95,
+        populationSize = population_size,
+        ε = 0.2
+        )
 
     seeds = []
     for i in 1:num_samples
@@ -164,21 +178,9 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         
         bm = BitArray(zeros(sum(idx)))
         bm[1] = 1
-        
+        bitmask = nothing
+	
     try
-            # Start Optimization #
-            opts = Evolutionary.Options(iterations=iterations, show_every=1, show_trace=true, store_trace=true,
-            successive_f_tol=100000)
-
-        algo = GA(
-        selection = rouletteinv,
-        mutation =  bm_mutation(type="rand_idx", p=mutation_prob),
-        crossover = bm_crossover(),
-        mutationRate = 0.95,
-        crossoverRate = 0.95,
-        populationSize = population_size,
-        ε = 0.2
-        )
 	        res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; 
         	                            idx=idx, thresh=pmi_thresh, size_thresh=size_thresh),
                 	                    bm, algo, opts)
@@ -188,7 +190,11 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
 	catch
 		println("Caught Exception")
 	end
-	bitmask = copy(bitmask_sol)
+	if !isnothing(bitmask_sol)
+		bitmask = copy(bitmask_sol)
+	end
+	bitmask_sol = nothing
+	@assert !isnothing(bitmask) "Selected unique bitmask is nothing set"
         
         acc = acc .| bitmask
         

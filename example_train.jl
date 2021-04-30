@@ -182,7 +182,7 @@ function mine_em_model(dataset_name, config_dict;
     load_bitmask_path=nothing,
     load_bitmasks=false)
 
-    Random.seed!(42)
+    # Random.seed!(42)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
     pick_edge = "eFlow"
     pick_var = "vMI"
