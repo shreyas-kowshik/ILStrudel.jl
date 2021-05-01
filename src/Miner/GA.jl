@@ -111,7 +111,7 @@ end
 Mine CSIs at the root level
 """
 function mine_csi_root_ga(pc, vtree, train_x, num_samples;
-                    iterations=10, mutation_prob=0.3, population_size=100,
+                    iterations=10, mutation_prob=0.1, population_size=100,
                     pmi_thresh=0.1, size_thresh=100)
 
     # N = size(train_x)[1]
@@ -193,6 +193,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
 	if !isnothing(bitmask_sol)
 		bitmask = copy(bitmask_sol)
 	end
+	# TODO : Uncomment when adding try catch
 	bitmask_sol = nothing
 	@assert !isnothing(bitmask) "Selected unique bitmask is nothing set"
         

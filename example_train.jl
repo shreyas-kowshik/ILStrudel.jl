@@ -8,7 +8,7 @@ using ILStrudel
 using Statistics
 using ArgParse
 using JLD
-using Random
+# using Random
 
 """
 Circuit I/O template :
