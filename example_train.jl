@@ -8,7 +8,7 @@ using ILStrudel
 using Statistics
 using ArgParse
 using JLD
-# using Random
+using Random
 
 """
 Circuit I/O template :
@@ -37,137 +37,6 @@ function single_model()
         return_vtree=false)
 end
 
-function save_bitmasks(path::String, bm_config)
-
-end
-
-### This function has empirical issues with normalized probability distribution output ###
-
-# function mine_model(dataset_name, config_dict; 
-#     mine_iterations=1,
-#     population_size=population_size,
-#     num_mine_samples=10,
-#     pseudocount=1e-9,
-#     sanity_check=true,
-#     maxiter=700,
-#     seed=nothing,
-#     return_vtree=false,
-#     return_bitmasks=true,
-#     pmi_thresh=0.1,
-#     load_bitmask_path=nothing,
-#     load_bitmasks=false)
-
-#     train_x, valid_x, test_x = twenty_datasets(dataset_name)
-#     pick_edge = "eFlow"
-#     pick_var = "vMI"
-#     config_name = "$(mine_iterations)_$(population_size)_$(num_mine_samples).jld"
-
-#     if !isnothing(load_bitmask_path)
-#         bitmasks = load(load_bitmask_path)["bitmasks"]
-#         println("Loaded Bitmasks!")
-#     else
-#         if load_bitmasks
-#             save_path = joinpath(BITMASK_DIR, dataset_name)
-#             load_bitmask_path = joinpath(save_path, config_name)
-#             bitmasks = load(load_bitmask_path)["bitmasks"]
-#             println("Loaded Bitmasks!")
-#         else
-#             bitmasks = nothing
-#         end
-#     end
-    
-#     pcs, bitmasks = learn_mine_ensemble(train_x, valid_x, test_x;
-#         mine_iterations=mine_iterations,
-#         population_size=population_size,
-#         num_mine_samples=num_mine_samples,
-#         pick_edge=pick_edge, pick_var=pick_var, depth=3,
-#         pseudocount=pseudocount,
-#         sanity_check=sanity_check,
-#         maxiter=maxiter,
-#         seed=seed,
-#         return_vtree=return_vtree,
-#         return_bitmasks=return_bitmasks,
-#         pmi_thresh=pmi_thresh,
-#         bitmasks=bitmasks)
-
-
-#     # Save Bitmasks
-#     save_path = joinpath(BITMASK_DIR, dataset_name)
-#     if !isdir(save_path)
-#         mkpath(save_path)
-#     end
-
-#     save_file = joinpath(save_path, config_name)
-#     save(save_file, "bitmasks", bitmasks)
-
-#     # Validation ll computation
-#     weights = [sum(bitmask) / size(train_x)[1] for bitmask in bitmasks]
-#     println(weights)
-#     println(sum(weights))
-
-#     train_lls = hcat([log_likelihood_per_instance(pc, train_x) for pc in pcs]...)
-#     valid_lls = hcat([log_likelihood_per_instance(pc, valid_x) for pc in pcs]...)
-#     test_lls = hcat([log_likelihood_per_instance(pc, test_x) for pc in pcs]...)
-
-#     println(size(valid_lls))
-#     println(size(test_lls))
-
-#     ###
-#     # idx = [t[2] for t in argmax(train_lls, dims=2)]
-#     # println(maximum(idx))
-#     # vals = maximum(train_lls, dims=2)
-
-#     println("Train LL Size : $(size(train_lls))")
-#     vals = logsumexp(train_lls, dims=2) .+ log(1.0 / (size(train_lls)[2]))
-#     train_ll = mean(vals)
-
-#     # idx = [t[2] for t in argmax(valid_lls, dims=2)]
-#     # println(maximum(idx))
-#     # vals = maximum(train_lls, dims=2)
-#     vals = logsumexp(valid_lls, dims=2) .+ log(1.0 / (size(valid_lls)[2]))
-#     valid_ll = mean(vals)
-
-#     # idx = [t[2] for t in argmax(test_lls, dims=2)]
-#     # println(maximum(idx))
-#     # vals = maximum(train_lls, dims=2)
-#     vals = logsumexp(test_lls, dims=2) .+ log(1.0 / (size(test_lls)[2]))
-#     test_ll = mean(vals)
-
-#     config_dict["train_ll"] = train_ll
-#     config_dict["valid_ll"] = valid_ll
-#     config_dict["test_ll"] = test_ll
-#     bit_lengths = [sum(b) for b in bitmasks]
-#     total_params = sum([num_parameters(pc) for pc in pcs])
-#     config_dict["params"] = total_params
-
-#     # Save Results
-#     save_path = joinpath(LOG_DIR, dataset_name)
-#     if !isdir(save_path)
-#         mkpath(save_path)
-#     end
-
-#     file_id = length(readdir(save_path)) + 1
-#     file_name = "$(file_id).jld"
-#     save_file = joinpath(save_path, file_name)
-#     save(save_file, "config_dict", config_dict)
-
-#     println(config_dict)
-#     ###
-
-
-#     # prod_nodes = []
-#     # for pc in pcs
-#     #     push!(prod_nodes, children(pc)...)
-#     # end
-
-#     # ensemble_pc = disjoin(prod_nodes...)
-#     # estimate_parameters(ensemble_pc, train_x; pseudocount=1.0)
-#     # valid_ll = log_likelihood_avg(ensemble_pc, valid_x)
-#     # test_ll = log_likelihood_avg(ensemble_pc, test_x)
-#     # println(valid_ll)
-#     # println(test_ll)
-# end
-
 function mine_em_model(dataset_name, config_dict; 
     mine_iterations=1,
     population_size=population_size,
@@ -182,7 +51,7 @@ function mine_em_model(dataset_name, config_dict;
     load_bitmask_path=nothing,
     load_bitmasks=false)
 
-    # Random.seed!(42)
+    Random.seed!(42)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
     pick_edge = "eFlow"
     pick_var = "vMI"

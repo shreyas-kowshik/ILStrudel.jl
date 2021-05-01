@@ -154,21 +154,13 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         ε = 0.2
         )
 
-    seeds = []
-    for i in 1:num_samples
-        # push!(seeds, i * 100 + 47)
-	push!(seeds, 47); # Why not keep it the same?
-    end
-
     bitmasks = []
     acc = BitArray(zeros(N))
 
     global size_limit_set, bitmask_sol
-    for seed in seeds
+    for iter in 1:num_samples
         println("Resetting Size Limit")
         size_limit_set = false
-
-        Random.seed!(seed);
         idx = .!(acc)
         println(sum(idx))
 
