@@ -49,9 +49,10 @@ function mine_em_model(dataset_name, config_dict;
     return_bitmasks=true,
     pmi_thresh=0.1,
     load_bitmask_path=nothing,
-    load_bitmasks=false)
+    load_bitmasks=false,
+    seed=42)
 
-    Random.seed!(42)
+    Random.seed!(seed)
     train_x, valid_x, test_x = twenty_datasets(dataset_name)
     pick_edge = "eFlow"
     pick_var = "vMI"
@@ -88,8 +89,8 @@ function mine_em_model(dataset_name, config_dict;
     # Mean of values chosen
     pmi_stats_path = joinpath("bin/pmi_stats/", dataset_name)
     pmi_stats = collect(values(load(joinpath(pmi_stats_path, string("mi", config_dict["num_mi_bags"], "s.jld")))))[1]
-    # Set mean of the statistics
-    pmi_thresh = mean(pmi_stats)
+    # Set mean + std of the statistics
+    pmi_thresh = mean(pmi_stats) + std(pmi_stats)
 
     println("PMI THRESH USED : $pmi_thresh")
 
@@ -364,7 +365,13 @@ function parse_commandline()
             arg_type = Int
             default = 10
             required = false
-        
+       
+        "--seed"
+            help = "Random Seed"
+            arg_type = Int
+            default = 42
+            required = false
+
         # "--split_h"
         #     help = "Split Heuristic"
         #     arg_type = String
@@ -404,7 +411,8 @@ pseudocount=parsed_args["pseudocount"],
 maxiter=parsed_args["maxiter"],
 pmi_thresh=parsed_args["pmi_thresh"],
 load_bitmask_path=parsed_args["bitmask_path"],
-load_bitmasks=parsed_args["load_bitmasks"])
+load_bitmasks=parsed_args["load_bitmasks"],
+seed=parsed_args["seed"])
 
 # boosting_model(parsed_args["name"], parsed_args;
 #              maxiter=parsed_args["maxiter"],

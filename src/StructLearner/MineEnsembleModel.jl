@@ -75,7 +75,7 @@ function learn_mine_ensemble(train_x, valid_x, test_x;
 
         # Comput pMI
         println("Threshold pMI : $pmi_thresh")
-        pMI = bootstrap_mutual_information(dmat, prime_lits, sub_lits; use_gpu=true, k=1, α=1.0) 
+        pMI = bootstrap_mutual_information(dmat[bitmask, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0) 
         println("Bitmask pMI : $pMI")
         push!(final_pmis, pMI)
 

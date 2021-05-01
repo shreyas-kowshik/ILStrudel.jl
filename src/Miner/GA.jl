@@ -45,9 +45,9 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
         error("Going out of genetic algorithm")
             end
 
-            return -100.0 * sum(bm)
+            return -1000.0 * sum(bm)
         end
-        return -1.0 * sum(bm)
+        return -0.001 * sum(bm)
     end
     return score
 end
