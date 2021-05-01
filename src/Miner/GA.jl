@@ -26,10 +26,10 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
 	global size_limit_set, bitmask_sol
         if size_limit_set
 	    # error("Exiting out of the function")
-            return 1.0
+            return -1.0 * sum(bm)
         end
 
-        if mi < thresh && sum(bm) > 0 # 1 # Do not include the case where only one unique example is present
+        if mi < thresh && sum(bm) > 0
             println("Solution Found : $mi")
             println("Bitmask Initial : $(bm_mi[1:10])")
 	    println("Bitmask Size : $(sum(bm_mi))")
@@ -45,9 +45,9 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
         error("Going out of genetic algorithm")
             end
 
-            return -1.0 * sum(bm)
+            return -100.0 * sum(bm)
         end
-        return 1.0
+        return -1.0 * sum(bm)
     end
     return score
 end
@@ -199,6 +199,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         end
         push!(bitmasks, bm_train_x)
 
+        println("Size of chosen bitmask : $(sum(bm_train_x))")
         mi = bootstrap_mutual_information(dmat[bm_train_x, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0)
         println("Bitmask $mi, pmi_thresh : $pmi_thresh")
     end
