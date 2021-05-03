@@ -32,6 +32,59 @@ function vMI(values, flows, edge, vars::Vector{Var}, train_x)
     var, score
 end
 
+function v_pMI(values, flows, edge, vars::Vector{Var}, train_x)
+    if isweighted(train_x)
+        train_x, weights = split_sample_weights(train_x)
+    else
+        weights = nothing
+    end
+
+    dmat = BitArray(convert(Matrix, train_x))
+    N = num_examples(train_x)
+
+    examples_id = downflow_all(values, flows, num_examples(train_x), edge...)
+    (or, and) = edge
+    og_lits = collect(Set{Lit}(variables(and.vtree))) # All literals
+
+    # On which you can split
+    # lits = sort(collect(intersect(filter(l -> l > 0, og_lits), - collect(filter(l -> l < 0, og_lits)))))
+    lits = collect(Set{Lit}(scope[and]))
+    prime_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[1].vtree)])
+    sub_lits = sort([abs(l) for l in og_lits if l in variables(children(and)[2].vtree)])
+    prime_lits = sort(collect(Set{Lit}(prime_lits)))
+    sub_lits = sort(collect(Set{Lit}(sub_lits)))
+    prime_sub_lits = sort([prime_lits..., sub_lits...])
+
+    @assert length(prime_lits) > 0 "Prime litset empty"
+    @assert length(sub_lits) > 0 "Sub litset empty"
+    prime_sub_vars = Var.(prime_sub_lits)
+
+    scores = []
+    for var in vars
+        pos_scope = examples_id .& dmat[:, var]
+        neg_scope = examples_id .& (.!(pos_scope))
+        @assert sum(examples_id) == (sum(pos_scope) + sum(neg_scope)) "Scopes do not add up"
+
+        stotal =  bootstrap_mutual_information(dmat[examples_id, :], prime_lits, sub_lits; use_gpu=true)
+
+        s1 = Inf
+        s2 = Inf
+
+        if sum(pos_scope) > 0
+            s1 = bootstrap_mutual_information(dmat[pos_scope, :], prime_lits, sub_lits; use_gpu=true)
+        end
+        if sum(neg_scope) > 0
+            s2 = bootstrap_mutual_information(dmat[neg_scope, :], prime_lits, sub_lits; use_gpu=true)
+        end
+
+        push!(scores, s1 + s2 - 2.0 * stotal)
+    end
+
+    var = vars[argmax(scores)]
+    score = maximum(scores)
+    var, score
+end
+
 """
 Pick the edge randomly
 """
@@ -277,6 +330,8 @@ function split_heuristic(circuit::LogicCircuit, train_x; pick_edge="w_ind", pick
 
         if pick_var == "vMI"
             var, score = vMI(values, flows, edge, vars, train_x)
+        if pick_var == "v_pMI"
+            var, score = v_pMI(values, flows, edge, vars, train_x)
         elseif pick_var == "vRand"
             var = vRand(vars)
         else
