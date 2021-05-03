@@ -105,7 +105,8 @@ function EM(m::Mixture, train_x; weights=nothing, num_iters=50, pseudocount=1.0)
 	if isnothing(prev_val)
 		prev_val = ll_x
 	else
-		@assert (ll_x - prev_val) >= 0 "EM increment issue"
+		@assert (ll_x - prev_val) >= -1e-3 "EM increment issue, prev_val : $prev_val, current_val : $ll_x"
+		prev_val = copy(ll_x)
 	end
 
         println("Log_p_x : $(ll_x)")

@@ -44,7 +44,6 @@ function mine_em_model(dataset_name, config_dict;
     pseudocount=1e-9,
     sanity_check=true,
     maxiter=700,
-    seed=nothing,
     return_vtree=false,
     return_bitmasks=true,
     pmi_thresh=0.1,
@@ -133,7 +132,7 @@ function mine_em_model(dataset_name, config_dict;
     for pc in pcs
         # TODO : Experiment with this
         # Re-estimate parameters over the entire dataset as a starting point
-        # estimate_parameters(pc, train_x; pseudocount=pseudocount)
+        estimate_parameters(pc, train_x; pseudocount=pseudocount)
         add_component(mixture, pc)
     end
 

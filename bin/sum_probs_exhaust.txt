@@ -47,3 +47,31 @@ Logsumexp : 1.0658141036401503e-14
 Sumexp : 1.0000000000000107
 
 
+/space/shreyas-kowshik/runs/bag1_seed_42/
+nltcs
+mine_em_4
+Logsumexp : 2.4424906541753444e-14
+Sumexp : 1.0000000000000244
+
+
+/space/shreyas-kowshik/runs/bag1_seed_42/
+msnbc
+mine_em_4
+Logsumexp : 2.0872192862952943e-14
+Sumexp : 1.0000000000000209
+
+
+/space/shreyas-kowshik/runs/bag2_seed_42/
+nltcs
+mine_em_4
+Logsumexp : 6.439293542825908e-15
+Sumexp : 1.0000000000000064
+
+
+/space/shreyas-kowshik/runs/bag2_seed_42/
+msnbc
+mine_em_4
+Logsumexp : 2.6645352591003757e-14
+Sumexp : 1.0000000000000266
+
+

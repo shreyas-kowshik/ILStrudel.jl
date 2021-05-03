@@ -4,7 +4,7 @@ using PyPlot
 using JLD
 using CSV
 
-function generate_pmi_bagging_stats(dataset; num_iters=1000)
+function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
     train_x, _, _ = twenty_datasets(dataset)
     pc, vtree = learn_chow_liu_tree_circuit(train_x)
 
@@ -30,33 +30,35 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000)
     for i in 1:num_iters
     	println("Iteration : $i")
         bm = BitArray(rand(d, n))
-        mi = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=false, k=1, α=1.0)
-        mi20 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=20, use_gpu=false, k=1, α=1.0)
-        mi50 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=50, use_gpu=false, k=1, α=1.0)
+        mi = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=true, k=1, α=1.0)
+        mi20 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0)
+        mi50 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=50, use_gpu=true, k=1, α=1.0)
 
         push!(mis, mi)
         push!(mi20s, mi20)
         push!(mi50s, mi50)
     end
 
-    if !isdir(joinpath("bin/pmi_stats", dataset))
-        mkpath(joinpath("bin/pmi_stats", dataset))
+    save_path = string("pmi_stats_", string(seed))
+    if !isdir(joinpath("bin", save_path, dataset))
+        mkpath(joinpath("bin", save_path, dataset))
     end
     
-    save_file = joinpath("bin/pmi_stats", dataset, "mis.jld")
+    save_file = joinpath("bin", save_path, dataset, "mis.jld")
     save(save_file, "mis", mis)
-    save_file = joinpath("bin/pmi_stats", dataset, "mi20s.jld")
+    save_file = joinpath("bin", save_path, dataset, "mi20s.jld")
     save(save_file, "mi20s", mi20s)
-    save_file = joinpath("bin/pmi_stats", dataset, "mi50s.jld")
+    save_file = joinpath("bin", save_path, dataset, "mi50s.jld")
     save(save_file, "mi50s", mi50s)
 
     hist(mis, bins=20)
-    savefig(joinpath("bin/pmi_stats", dataset, "mis.png"))
+    savefig(joinpath("bin", save_path, dataset, "mis.png"))
     hist(mi20s, bins=20)
-    savefig(joinpath("bin/pmi_stats", dataset, "mi20s.png"))
+    savefig(joinpath("bin", save_path, dataset, "mi20s.png"))
     hist(mi50s, bins=20)
-    savefig(joinpath("bin/pmi_stats", dataset, "mi50s.png"))
+    savefig(joinpath("bin", save_path, dataset, "mi50s.png"))
 
+    generate_plots(joinpath("bin", save_path));
 end
 
 """
