@@ -4,6 +4,12 @@ using PyPlot
 using JLD
 using CSV
 
+function generate_pmi_bagging_stats(num_iters, seed)
+ for dataset in twenty_dataset_names[1:end-1]
+  generate_pmi_bagging_stats(dataset; num_iters=num_iters, seed=seed)
+ end
+end
+
 function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
     train_x, _, _ = twenty_datasets(dataset)
     pc, vtree = learn_chow_liu_tree_circuit(train_x)
@@ -23,11 +29,14 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
     n = size(dmat)[1]
     p= 0.5
     d = Binomial(1, p)
+    probs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9]
 
     mis = []
     mi20s = []
     mi50s = []
     for i in 1:num_iters
+    	for p in probs
+	d = Binomial(1, p)
     	println("Iteration : $i")
         bm = BitArray(rand(d, n))
         mi = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=true, k=1, α=1.0)
@@ -37,6 +46,7 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
         push!(mis, mi)
         push!(mi20s, mi20)
         push!(mi50s, mi50)
+	end
     end
 
     save_path = string("pmi_stats_", string(seed))
