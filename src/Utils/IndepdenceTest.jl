@@ -205,6 +205,7 @@ end
 
 function bootstrap_mutual_information(mat, vars_x, vars_y; num_bags=20, k=1, use_gpu=false, α=1.0)
     # println("MI Size : $(size(mat))")
+    # α=1e-9 # TODO : Change this at the appropriate places than here
     num_examples = size(mat)[1]
 
     # Value should ideally be zero but still passing it to code which should handle it

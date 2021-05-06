@@ -344,9 +344,9 @@ end
 
 parsed_args = parse_commandline()
 header = ["dataset", "test_ll", "size"]
-#create_summary(parsed_args["logdir"], header)
+create_summary(parsed_args["logdir"], header)
 
-#jld_summary(parsed_args["logdir"])
-#print_stats(parsed_args["logdir"])
+jld_summary(parsed_args["logdir"])
+print_stats(parsed_args["logdir"])
 
-combine_seeds(parsed_args["logdir"])
+#combine_seeds(parsed_args["logdir"])

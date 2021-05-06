@@ -5,9 +5,11 @@ using Evolutionary
 Contains functions for mining Context-Specific-Independences at the root level using Genetic Algorithms
 """
 
-global size_limit_set, bitmask_sol
+global size_limit_set, bitmask_sol, max_so_far, bitmask_max_so_far
 size_limit_set=false
 bitmask_sol = nothing
+max_so_far = -1
+bitmask_max_so_far = zeros(1)
 
 ### Fitness Function ###
 function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones(1)), thresh = 0.1, size_thresh=100)
@@ -23,13 +25,13 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
 
         mi = bootstrap_mutual_information(dmat[bm_mi, :], prime_lits, sub_lits; use_gpu=true, k=1, α=1.0)
 
-	global size_limit_set, bitmask_sol
+	global size_limit_set, bitmask_sol, max_so_far, bitmask_max_so_far
         if size_limit_set
 	    # error("Exiting out of the function")
             return -1.0 * sum(bm)
         end
 
-        if mi < thresh && sum(bm) > 0
+        if mi < thresh && sum(bm) > 1
             println("Solution Found : $mi")
             println("Bitmask Initial : $(bm_mi[1:10])")
 	    println("Bitmask Size : $(sum(bm_mi))")
@@ -38,12 +40,35 @@ function fitness(dmat, uq, dict, prime_lits=[1], sub_lits=[2]; idx=BitArray(ones
 
             if sum(bm_mi) > size_thresh && sum(bm) > 1 # At least 2 unique examples to keep
                 println("Size Limit Crossed, Clamping for current iterations")
+		println("Current : $(sum(bm_mi))")
+		println("Max So Far : $(sum(max_so_far))")
+
+		d1 = abs(sum(max_so_far) - size_thresh)
+		d2 = abs(sum(bm_mi) - size_thresh)
+		println("Distance of Max So Far : $(d1)")
+		println("Distance of current : $(d2)")
+
+		bitmask_sol = copy(bm)
+		
+		if d1 < d2 && sum(max_so_far) != -1
+		 println("Using Max So Far as the solution")
+		 bitmask_sol = copy(bitmask_max_so_far)
+		else
+		 println("Using Current as the solution")
+		 bitmask_sol = copy(bm)
+		end
+
                 size_limit_set = true
-        bitmask_sol = copy(bm)
         
-        # Error here itself?
-        error("Going out of genetic algorithm")
+	        # Error here itself?
+        	error("Going out of genetic algorithm")
             end
+
+	    if sum(bm_mi) > sum(max_so_far)
+	     println("Update Max So Far")
+	     max_so_far = copy(bm_mi)
+	     bitmask_max_so_far = copy(bm)
+	    end
 
             return -1000.0 * sum(bm)
         end
@@ -96,7 +121,7 @@ function initial_population(method::M, individual::BitArray) where {M<:Evolution
     population = []
     s = Int(floor(size(individual)[1] / Evolutionary.population_size(method)))
     for i in 1:Evolutionary.population_size(method)
-    	n = size(individual)
+	n = size(individual)
         d = Binomial(1, 0.5)
         bm = BitArray(rand(d, n))
 	# This is really sparse, TODO : May Remove below two lines as well
@@ -140,7 +165,7 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
 
     N = size(uq)[1]
             
-    	    # Start Optimization #
+	    # Start Optimization #
             opts = Evolutionary.Options(iterations=iterations, show_every=1, show_trace=true, store_trace=true,
             successive_f_tol=100000)
 
@@ -157,10 +182,13 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
     bitmasks = []
     acc = BitArray(zeros(N))
 
-    global size_limit_set, bitmask_sol
+    global size_limit_set, bitmask_sol, max_so_far, bitmask_max_so_far
     for iter in 1:num_samples
         println("Resetting Size Limit")
         size_limit_set = false
+	println("Resetting Size so far")
+	max_so_far = -1
+	bitmask_max_so_far = zeros(1)
         idx = .!(acc)
         println(sum(idx))
 
@@ -173,12 +201,12 @@ function mine_csi_root_ga(pc, vtree, train_x, num_samples;
         bitmask = nothing
 	
     try
-	        res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; 
-        	                            idx=idx, thresh=pmi_thresh, size_thresh=size_thresh),
-                	                    bm, algo, opts)
-	        evomodel = Evolutionary.minimizer(res)
-        	bitmask = BitArray(zeros(N))
-	        bitmask[idx] = evomodel
+		res = Evolutionary.optimize(fitness(dmat, uq, dict, prime_lits, sub_lits; 
+					    idx=idx, thresh=pmi_thresh, size_thresh=size_thresh),
+					    bm, algo, opts)
+		evomodel = Evolutionary.minimizer(res)
+		bitmask = BitArray(zeros(N))
+		bitmask[idx] = evomodel
 	catch
 		println("Caught Exception")
 	end
