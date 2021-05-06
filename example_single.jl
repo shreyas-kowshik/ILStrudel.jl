@@ -52,4 +52,4 @@ end
 parsed_args = parse_commandline()
 
 Random.seed!(parsed_args["seed"])
-single_model(parsed_args["dataset"]; maxiter=parsed_args["maxiter"])
+single_model(parsed_args["name"]; maxiter=parsed_args["maxiter"])

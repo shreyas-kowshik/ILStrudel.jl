@@ -11,7 +11,7 @@ min_len = 0
 max_len = 20
 datasets = datasets[min_len:max_len]
 # datasets = datasets[max_len:]
-datasets = ['ad', 'c20ng', 'cr52']
+datasets = ['c20ng']
 # datasets = ['nltcs']
 
 for (i,dataset) in enumerate(datasets):
@@ -19,9 +19,9 @@ for (i,dataset) in enumerate(datasets):
     # run_name = "dry_run_1" 
     # command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 150 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 5 --mine_iterations 3 --num_mi_bags 50'".format(sess, dataset, run_name)
     # command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 1000 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 5 --mine_iterations 3 --num_mi_bags 50 --bitmask_path ~/runs/mine_em_bagging_sv_vtree_bag_1/{}/bitmasks.jld'".format(sess, dataset, run_name, dataset)
-    run_name = "bag2_seed_47"
-    # command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 30 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 10 --mine_iterations 3 --num_mi_bags 20 --seed 47'".format(sess, dataset, run_name)
-    command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 50 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 10 --mine_iterations 3 --num_mi_bags 20 --seed 47 --bitmask_path ~/runs/{}/{}/bitmasks.jld'".format(sess, dataset, run_name, run_name, dataset)
+    run_name = "bag2_seed_63"
+    # command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 30 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 10 --mine_iterations 3 --num_mi_bags 20 --seed 63'".format(sess, dataset, run_name)
+    command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 300 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 10 --mine_iterations 3 --num_mi_bags 20 --seed 63 --bitmask_path ~/runs/{}/{}/bitmasks.jld'".format(sess, dataset, run_name, run_name, dataset)
 
     args = shlex.split(command)
     subprocess.Popen(args)

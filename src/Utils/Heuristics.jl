@@ -32,7 +32,7 @@ function vMI(values, flows, edge, vars::Vector{Var}, train_x)
     var, score
 end
 
-function v_pMI(values, flows, edge, vars::Vector{Var}, train_x)
+function v_pMI(values, flows, edge, vars::Vector{Var}, train_x, scope)
     if isweighted(train_x)
         train_x, weights = split_sample_weights(train_x)
     else
@@ -59,22 +59,23 @@ function v_pMI(values, flows, edge, vars::Vector{Var}, train_x)
     @assert length(sub_lits) > 0 "Sub litset empty"
     prime_sub_vars = Var.(prime_sub_lits)
 
+    num_bags=3
     scores = []
     for var in vars
         pos_scope = examples_id .& dmat[:, var]
         neg_scope = examples_id .& (.!(pos_scope))
         @assert sum(examples_id) == (sum(pos_scope) + sum(neg_scope)) "Scopes do not add up"
 
-        stotal =  bootstrap_mutual_information(dmat[examples_id, :], prime_lits, sub_lits; use_gpu=true)
+        stotal =  bootstrap_mutual_information(dmat[examples_id, :], prime_lits, sub_lits; num_bags=num_bags, use_gpu=true)
 
         s1 = Inf
         s2 = Inf
 
         if sum(pos_scope) > 0
-            s1 = bootstrap_mutual_information(dmat[pos_scope, :], prime_lits, sub_lits; use_gpu=true)
+            s1 = bootstrap_mutual_information(dmat[pos_scope, :], prime_lits, sub_lits; num_bags=num_bags, use_gpu=true)
         end
         if sum(neg_scope) > 0
-            s2 = bootstrap_mutual_information(dmat[neg_scope, :], prime_lits, sub_lits; use_gpu=true)
+            s2 = bootstrap_mutual_information(dmat[neg_scope, :], prime_lits, sub_lits; num_bags=num_bags, use_gpu=true)
         end
 
         push!(scores, s1 + s2 - 2.0 * stotal)
@@ -330,8 +331,8 @@ function split_heuristic(circuit::LogicCircuit, train_x; pick_edge="w_ind", pick
 
         if pick_var == "vMI"
             var, score = vMI(values, flows, edge, vars, train_x)
-        if pick_var == "v_pMI"
-            var, score = v_pMI(values, flows, edge, vars, train_x)
+        elseif pick_var == "v_pMI"
+            var, score = v_pMI(values, flows, edge, vars, train_x, variable_scope)
         elseif pick_var == "vRand"
             var = vRand(vars)
         else

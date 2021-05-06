@@ -58,7 +58,11 @@ function create_summary(log_path, header)
     summary_dict["test_ll"] = test_lls
     summary_dict["size"] = sizes
 
+    println("End of create_summary")
+
     save_as_csv(summary_dict; filename=joinpath(log_path, "summary.csv"), header=header)
+    println("Saved CSV file")
+
 end
 
 function jld_summary(log_path)
@@ -67,7 +71,7 @@ function jld_summary(log_path)
     init_keys = false
 
     function chk_type(d, k)
-    	if isa(d[k], Number) || isa(d[k], String)
+    	if isa(d[k], Number) || isa(d[k], String) || k=="bitmask_path"
 		    return true
 	    else
 		    return false
@@ -82,7 +86,7 @@ function jld_summary(log_path)
 
         dset_path = joinpath(log_path, dset)
 
-        for log in readdir(dset_path)
+        for log in sort(readdir(dset_path))
 	    	if !occursin(".jld", log)
 			    continue
 		    end
@@ -103,21 +107,16 @@ function jld_summary(log_path)
                 init_keys = true
             end
 
-            for k in keys(d)
-	    	try
+            for k in keys(summary_dict)
 	    	    if !(chk_type(d, k))
 			        continue
 		        end
-
                 if isnothing(d[k])
+		    println("Pushing NULL")
                     push!(summary_dict[k], "NULL")
                 else
                     push!(summary_dict[k], d[k])
                 end
-		catch
-		println("Skipping $k in summary...")
-		continue
-		end
             end
         end
     end
@@ -287,6 +286,48 @@ function print_stats(log_path)
     end
 end
 
+"""
+Usage : `julia1 example_summary.jl --logdir /space/shreyas-kowshik/runs/bag2`
+"""
+function combine_seeds(path)
+ prefix = string(path, "_")
+ files = readdir("/space/shreyas-kowshik/runs")
+ summary_dict = Dict()
+ vals = zeros(20)
+ counts = 0
+ header = []
+ push!(header, "dataset")
+ push!(header, "average")
+ 
+ for file in files
+  println(file)
+  if !occursin(prefix, joinpath("/space/shreyas-kowshik/runs", file))
+   continue
+  end
+
+  summary_path = joinpath("/space/shreyas-kowshik/runs", file, "summary.csv")
+  println(summary_path)
+  d = CSV.read(summary_path, DataFrame)
+
+  summary_dict["dataset"] = d["dataset"]
+  summary_dict[string("seed_", file[end-2:end])] = d["test_ll"]
+  push!(header, string("seed_", file[end-2:end]))
+  vals .= vals .+ d["test_ll"]
+  counts += 1
+ end
+
+ vals = vals ./ counts
+ summary_dict["average"] = vals
+
+ if !isdir(path)
+  mkpath(path)
+ end
+
+ filename = joinpath(path, "summary.csv")
+ save_as_csv(summary_dict; filename, header=header)
+end
+
+
 function parse_commandline()
     s = ArgParseSettings()
 
@@ -303,7 +344,9 @@ end
 
 parsed_args = parse_commandline()
 header = ["dataset", "test_ll", "size"]
-create_summary(parsed_args["logdir"], header)
+#create_summary(parsed_args["logdir"], header)
 
-jld_summary(parsed_args["logdir"])
-print_stats(parsed_args["logdir"])
+#jld_summary(parsed_args["logdir"])
+#print_stats(parsed_args["logdir"])
+
+combine_seeds(parsed_args["logdir"])
