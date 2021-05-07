@@ -75,3 +75,17 @@ Logsumexp : 2.6645352591003757e-14
 Sumexp : 1.0000000000000266
 
 
+/space/shreyas-kowshik/runs/bag3_tem_42/
+nltcs
+mine_em_4
+Logsumexp : -4.6629367034256575e-15
+Sumexp : 0.9999999999999953
+
+
+/space/shreyas-kowshik/runs/bag3_tem_42/
+msnbc
+mine_em_4
+Logsumexp : -3.9968028886505635e-15
+Sumexp : 0.999999999999996
+
+
