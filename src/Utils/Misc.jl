@@ -15,6 +15,16 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
     pc, vtree = learn_chow_liu_tree_circuit(train_x)
 
     dmat = BitArray(convert(Matrix, train_x))
+    uq = unique(train_x)
+    dict = Dict()
+    for i in 1:size(uq)[1]
+        dict[uq[i, :]] = []
+    end
+
+    for i in 1:size(train_x)[1]
+        push!(dict[train_x[i, :]], i)
+    end
+
 
     and = children(pc)[1]
     og_lits = collect(Set{Lit}(variables(and.vtree))) # All literals
@@ -26,7 +36,7 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
     sub_lits = sort(collect(Set{Lit}(sub_lits)))
     prime_sub_lits = sort([prime_lits..., sub_lits...])
 
-    n = size(dmat)[1]
+    n = size(uq)[1]
     p= 0.5
     d = Binomial(1, p)
     probs = [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9]
@@ -34,11 +44,21 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
     mis = []
     mi20s = []
     mi50s = []
+
+    println("Dataset : $dataset")
     for i in 1:num_iters
     	for p in probs
 	d = Binomial(1, p)
     	println("Iteration : $i")
-        bm = BitArray(rand(d, n))
+	
+        bm_uq = BitArray(rand(d, n)) # Generates bitmasks for unique examples
+	# Map unique examples to original dataset
+	bm = BitArray(zeros(size(dmat)[1]))
+        instances = uq[bm_uq, :]
+        for i in 1:size(instances)[1]
+            bm[dict[instances[i, :]]] .= 1
+        end
+
         mi = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=1, use_gpu=true, k=1, α=1.0)
         mi20 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=20, use_gpu=true, k=1, α=1.0)
         mi50 = bootstrap_mutual_information(dmat[bm, :], prime_lits, sub_lits; num_bags=50, use_gpu=true, k=1, α=1.0)
@@ -49,7 +69,7 @@ function generate_pmi_bagging_stats(dataset; num_iters=1000, seed=42)
 	end
     end
 
-    save_path = string("pmi_stats_", string(seed))
+    save_path = string("pmi_unique_stats_", string(seed))
     if !isdir(joinpath("bin", save_path, dataset))
         mkpath(joinpath("bin", save_path, dataset))
     end
