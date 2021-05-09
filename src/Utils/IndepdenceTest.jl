@@ -76,9 +76,9 @@ function kway_MI_cpu(dmat, vars_x, vars_y; k=2, α=1.0)
 
             for pval in prime_mat_vals
                 for sval in sub_mat_vals
-                    pcomb = sum(pval .& sval)/N
-                    pprimes = sum(pval)/N
-                    psubs = sum(sval)/N
+                    pcomb = (sum(pval .& sval) .+ α)/ (N + 16.0 * α)
+                    pprimes = (sum(pval) .+ 4.0 * α) / (N + 16.0 * α)
+                    psubs = (sum(sval) .+ 4.0 * α)/ (N + 16.0 * α)
 
                     pMI_val += (pcomb * (log((pcomb / ((pprimes * psubs) + 1e-6)) + 1e-6)))
                 end

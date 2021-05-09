@@ -132,6 +132,7 @@ function generate_pmi_runtime_stats()
 	mi20s_cpu = []
 	mis_gpu = []
 	mi20s_gpu = []
+	mi_two_way_cpu = []
 
 
 	for dataset in twenty_dataset_names[1:end-1]
@@ -182,6 +183,14 @@ function generate_pmi_runtime_stats()
 		mi20_gpu = (t1 - t0)/1e9
 		println(mi20_gpu)
 
+		# mi_two_way_cpu = []
+		t0 = Base.time_ns()
+    		mi2way = bootstrap_mutual_information(dmat, prime_lits, sub_lits; num_bags=1, use_gpu=false, k=2, α=1.0)
+		t1 = Base.time_ns()
+		mi2way = (t1 - t0)/1e9
+		println(mi2way)
+
+
 		@assert isapprox(mi_cpu_val, mi_gpu_val; atol=1e-6) "cpu : $mi_cpu_val, gpu : $mi_gpu_val"
 
     		push!(datasets, dataset)
@@ -189,6 +198,7 @@ function generate_pmi_runtime_stats()
     		push!(mi20s_cpu, mi20_cpu)
     		push!(mis_gpu, mi_gpu)
     		push!(mi20s_gpu, mi20_gpu)
+		push!(mi_two_way_cpu, mi2way)
     	end
 
 	summary_dict = Dict()
@@ -197,8 +207,9 @@ function generate_pmi_runtime_stats()
 	summary_dict["mi20s_cpu"] = mi20s_cpu
 	summary_dict["mis_gpu"] = mis_gpu
 	summary_dict["mi20s_gpu"] = mi20s_gpu
+	summary_dict["mi2way"] = mi_two_way_cpu
 	
-	header = ["dataset", "mis_cpu", "mi20s_cpu", "mis_gpu", "mi20s_gpu"]
+	header = ["dataset", "mis_cpu", "mi20s_cpu", "mis_gpu", "mi20s_gpu", "mi2way"]
 	save_as_csv(summary_dict; filename=joinpath(save_dir, "pmi_runtimes.csv"), header=header)
 	println("Saved Runtimes")
 end
