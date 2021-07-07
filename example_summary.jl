@@ -153,7 +153,7 @@ function print_stats(log_path)
                     d = load(joinpath(dset_path, log))["config_dict"]
 		    
 		    mi_fname = string("mi", d["num_mi_bags"], "s")
-		    pmi_stats = load(joinpath("bin", "pmi_stats", dset, string(mi_fname, ".jld")))[mi_fname]
+		    pmi_stats = load(joinpath("bin", "pmi_unique_stats_47", dset, string(mi_fname, ".jld")))[mi_fname]
 		    mu = mean(pmi_stats)
 		    sigma = std(pmi_stats)
 		    
@@ -175,6 +175,10 @@ function print_stats(log_path)
                     write(file, "Sum_x p_z_given_x .* bitmasks : ")
 		            write(file, "\n\n\n")
                     write(file, string(sum(em_data_weights .* b, dims=1)))
+		            write(file, "\n\n\n")
+                    write(file, "Metric : Sum(Sum_x p_z_given_x .* bitmasks) / N : ")
+		            write(file, "\n\n\n")
+                    write(file, string(sum(em_data_weights .* b) / sum(b)))
 		            write(file, "\n\n\n")
                     write(file, "Mean: ")
 		            write(file, "\n")

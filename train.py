@@ -15,13 +15,13 @@ datasets = datasets[min_len:max_len]
 # datasets = ['nltcs', 'msnbc', 'kdd']
 
 for (i,dataset) in enumerate(datasets):
-    sess = dataset
+    sess = dataset + "_63"
     # run_name = "dry_run_1" 
     # command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 150 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 5 --mine_iterations 3 --num_mi_bags 50'".format(sess, dataset, run_name)
     # command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 1000 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 5 --mine_iterations 3 --num_mi_bags 50 --bitmask_path ~/runs/mine_em_bagging_sv_vtree_bag_1/{}/bitmasks.jld'".format(sess, dataset, run_name, dataset)
-    run_name = "bag5_tem_42"
-    # command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 30 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 5 --mine_iterations 3 --num_mi_bags 20 --seed 42'".format(sess, dataset, run_name)
-    command = "tmux new-session -d -s {} 'julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 1000 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 5 --mine_iterations 3 --num_mi_bags 20 --seed 42 --bitmask_path ~/runs/{}/{}/bitmasks.jld'".format(sess, dataset, run_name, run_name, dataset)
+    run_name = "final7_63"
+    #command = "tmux new-session -d -s {} 'CUDA_VISIBLE_DEVICES=1 julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 30 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 7 --mine_iterations 3 --num_mi_bags 20 --seed 63'".format(sess, dataset, run_name)
+    command = "tmux new-session -d -s {} 'CUDA_VISIBLE_DEVICES=0 julia1 example_train.jl --name {} --run_name {} --pseudocount 1.0 --maxiter 300 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 7 --mine_iterations 3 --num_mi_bags 20 --seed 63 --bitmask_path ~/runs/{}/{}/bitmasks.jld'".format(sess, dataset, run_name, run_name, dataset)
 
     args = shlex.split(command)
     subprocess.Popen(args)
