@@ -20,7 +20,7 @@ pc1 = load_struct_prob_circuit("tem.psdd", "tem.vtree")
 BASE = homedir()
 BITMASK_DIR = joinpath(BASE, "ILStrudel/bitmasks_bag_mi")
 LOG_DIR = joinpath(BASE, "ILStrudel/log/mine_bag_mi")
-BAGGING_LOG_DIR = joinpath(BASE, "ILStrudel/log/bagging_bag_mi")
+BAGGING_LOG_DIR = joinpath(BASE, "ILStrudel/log/bagging_mine_bag_mi")
 
 function single_model()
     # pc = learn_single_model("nltcs")
@@ -296,25 +296,25 @@ function parse_commandline()
             required = false
 
         "--population_size"
-            help = ""
+            help = "Initial population size for the genetic algorithm"
             arg_type = Int
             default = 1000
             required = false
             
         "--num_mine_samples"
-            help = ""
+            help = "Number of partitions to divide the data into"
             arg_type = Int
             default = 10
       		required = false
         
         "--pseudocount"
-            help = ""
+            help = "Pseudocount value for parameter estimation"
             arg_type = Float64
-            default = 1e-9
+            default = 1.0
             required = false
         
         "--maxiter"
-            help = ""
+            help = "Maximum number of iterations to run structure-learner for each component"
             arg_type = Int
             default = 200
             required = false
@@ -326,7 +326,7 @@ function parse_commandline()
             required = false
               
         "--pmi_thresh"
-            help = ""
+            help = "This is a redundant parameter. Not used per-se. Thresholds are chosen according to simulated statistics."
             arg_type = Float64
             default = 0.1
             required = false
@@ -372,31 +372,6 @@ function parse_commandline()
             arg_type = Int
             default = 42
             required = false
-
-        # "--split_h"
-        #     help = "Split Heuristic"
-        #     arg_type = String
-        #     required = true
-
-        # "--clone_h"
-        #     help = "Clone Heuristic"
-        #     arg_type = String
-        #     required = true
-
-        # "--merge_h"
-        #     help = "Merge Heuristic"
-        #     arg_type = String
-        #     required = true
-        # "--opt2", "-o"
-        #     help = "another option with an argument"
-        #     arg_type = Int
-        #     default = 0
-        # "--flag1"
-        #     help = "an option without argument, i.e. a flag"
-        #     action = :store_true
-        # "arg1"
-        #     help = "a positional argument"
-        #     required = true
     end
 
     return parse_args(s)
