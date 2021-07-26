@@ -1,6 +1,6 @@
 # ILStrudel
 
-Code for the paper : <a href="https://openreview.net/forum?id=wAcMi8m5IIC">ILStrudel : Independence-Based Learning of Structured-Decomposable Probabilistic Circuit Ensembles</a> accepted at the Tractable Probabilistic Models Workshop, UAI'21.
+Code for the paper : <a href="https://openreview.net/forum?id=wAcMi8m5IIC">ILStrudel : Independence-Based Learning of Structured-Decomposable Probabilistic Circuit Ensembles</a> accepted at the <a href="https://sites.google.com/view/tpm2021/home">Tractable Probabilistic Models Workshop, UAI'21</a>.
 
 ## Instructions To Run
 
