@@ -297,11 +297,14 @@ function combine_seeds(path)
  prefix = string(path, "_")
  files = readdir("/space/shreyas-kowshik/runs")
  summary_dict = Dict()
- vals = zeros(20)
+ num_seeds = 5
  counts = 0
  header = []
+ vals = zeros(20)
  push!(header, "dataset")
  push!(header, "average")
+ seed_idx = 0
+ agg_dict = Dict() # For aggregation
  
  for file in files
   println(file)
@@ -309,19 +312,59 @@ function combine_seeds(path)
    continue
   end
 
-  summary_path = joinpath("/space/shreyas-kowshik/runs", file, "summary.csv")
+  seed_idx += 1
+
+  summary_path = joinpath("/space/shreyas-kowshik/runs", file, "runs.csv")
   println(summary_path)
   d = CSV.read(summary_path, DataFrame)
 
-  summary_dict["dataset"] = d["dataset"]
-  summary_dict[string("seed_", file[end-2:end])] = d["test_ll"]
-  push!(header, string("seed_", file[end-2:end]))
-  vals .= vals .+ d["test_ll"]
-  counts += 1
+  for row in eachrow(d)
+   miter = row["maxiter"]
+   dset = row["name"]
+   config_str = "$(dset)_miter_$(miter)"
+   
+   if !(config_str in keys(agg_dict))
+    agg_dict[config_str] = []
+   end
+   push!(agg_dict[config_str], row["test_ll"])
+  end
+
+  println(agg_dict)
+  println("\n\n\n===\n\n\n")
+
+  # summary_dict["dataset"] = d["name"]
+  # summary_dict[string("seed_", file[end-2:end])] = d["test_ll"]
+  # push!(header, string("seed_", file[end-2:end]))
+  # println(size(d["test_ll"]))
+  # vals .= vals .+ d["test_ll"]
+  # counts += 1
  end
 
- vals = vals ./ counts
- summary_dict["average"] = vals
+ sum_dict = Dict()
+ for key in keys(agg_dict)
+  agg_dict[key] = mean(agg_dict[key])
+  dset = key[1:(findfirst("_", key)[1] - 1)]
+  if !(dset in keys(sum_dict))
+   sum_dict[dset] = []
+  end
+  push!(sum_dict[dset], agg_dict[key])
+ end
+
+ println(sum_dict)
+
+ summary_dict["dataset"] = []
+ summary_dict["average"] = []
+ for key in keys(sum_dict)
+  push!(summary_dict["dataset"], key)
+  push!(summary_dict["average"], maximum(sum_dict[key]))
+ end
+
+ # @assert counts == num_seeds
+ # vals = vals ./ counts
+ # vals = reshape(vals, 20, num_seeds)
+ # println(vals)
+ # vals = max(vals, dims=2)
+ # summary_dict["average"] = vals
 
  if !isdir(path)
   mkpath(path)
