@@ -1,5 +1,5 @@
 using Pkg
-Pkg.activate("/media/shreyas/Data/UCLA-Intern/ILStrudel/ILStrudel.jl")
+Pkg.activate(".") # Change according to the absolute path if required
 
 using Test
 using LogicCircuits
