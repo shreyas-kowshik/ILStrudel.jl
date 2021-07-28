@@ -14,11 +14,17 @@ julia example_train.jl --name [dataset_name] --run_name [exp_name] --pseudocount
 
 This will write all outputs to `$HOME_DIR/runs/$run_name/$dataset_name`.
 
-To change the `$HOME_DIR` path, change the $LOG_DIR` variable in `line 62` in `example_train.jl` to a custom path. 
+To change the `$HOME_DIR` path, change the `$LOG_DIR` variable in `line 62` in `example_train.jl` to a custom path. 
 
 To generate summary :
 
 `julia example_summary.jl --logdir $HOME_DIR/runs/$run_name`
+
+This will generate two files `runs.csv` and `summary.csv` under `$HOME_DIR/runs/$run_name`.
+
+`runs.csv` will hold performance of all the different hyperparameter configurations for each dataset.
+
+`summary.csv` will hold the best performing result of all the runs for each dataset.
 
 Train on all datasets :
 
