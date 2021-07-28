@@ -12,9 +12,11 @@ Train on single dataset :
 julia example_train.jl --name [dataset_name] --run_name [exp_name] --pseudocount 1.0 --maxiter 300 --pmi_thresh 0.03 --population_size 300 --num_mine_samples 7 --mine_iterations 3 --num_mi_bags 20 --seed 63
 ```
 
+`$HOME_DIR` is used to refer to output of `homedir()` in a `julia` program. 
+
 This will write all outputs to `$HOME_DIR/runs/$run_name/$dataset_name`.
 
-To change the `$HOME_DIR` path, change the `$LOG_DIR` variable in `line 62` in `example_train.jl` to a custom path. 
+To change the `$HOME_DIR` path to something else, change the `$LOG_DIR` variable in `line 62` in `example_train.jl` to a custom path. 
 
 To generate summary :
 
