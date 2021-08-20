@@ -2,6 +2,8 @@
 
 Code for the paper : <a href="https://openreview.net/forum?id=wAcMi8m5IIC">ILStrudel : Independence-Based Learning of Structured-Decomposable Probabilistic Circuit Ensembles</a> accepted at the <a href="https://sites.google.com/view/tpm2021/home">Tractable Probabilistic Models Workshop, UAI'21</a>.
 
+<a href="https://drive.google.com/file/d/1ggpHu5CzTqS0oKLcatGHvDDLWR10HEWe/view">Poster</a> | <a href="https://drive.google.com/file/d/1ZAKFfoQ71u1ef05v_krk5It_vAaDEP8a/view">Video</a>
+
 ## Instructions To Run
 
 By default the code uses the GPU to speed-up pairwise-mutual-information computation.
